@@ -36,5 +36,9 @@
 	<string>Assets.xcassets/AppIcon.appiconset</string>
 	<key>XSLaunchImageAssets</key>
 	<string>Assets.xcassets/LaunchImage.launchimage</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+    <string>Needed in order to communicate with with Bluetooth peripherals</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Needed in order to use the Bluetooth subsystem</string>
 </dict>
 </plist>
