@@ -17,6 +17,7 @@ using MvvmCross.Commands;
 using MvvmCross.Navigation;
 using MvvmCross;
 using Xamarin.Forms;
+using System.Runtime.CompilerServices;
 
 namespace BLE.Client.ViewModels
 {
@@ -331,6 +332,11 @@ namespace BLE.Client.ViewModels
                 config.Add("Show Services", async () =>
                 {
                     await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<ServiceListViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string> { { DeviceIdKey, device.Device.Id.ToString() } }));
+                });
+
+                config.Add("Send Command", async () =>
+                {
+                    await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<DeviceCommunicationViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string> { { DeviceIdKey, device.Device.Id.ToString() } }));
                 });
 
                 config.Destructive = new ActionSheetOption("Disconnect", () => DisconnectCommand.Execute(device));
