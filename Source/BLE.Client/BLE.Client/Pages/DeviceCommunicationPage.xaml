@@ -6,19 +6,43 @@
             xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
             x:Class="BLE.Client.Pages.DeviceCommunicationPage"
             Title="Device Communication">
-    <Grid>
+    <Grid> 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition> 
-            <RowDefinition Height="*"></RowDefinition> 
+            <RowDefinition Height="Auto"></RowDefinition> 
+            <RowDefinition Height="Auto"></RowDefinition> 
+            <RowDefinition Height="Auto"></RowDefinition> 
         </Grid.RowDefinitions>
-        <Grid>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/> 
+            </Grid.ColumnDefinitions>
+            <Entry Grid.Column="0" x:Name="EntryCommand" IsSpellCheckEnabled="False" Keyboard="Plain" Text="{Binding Command}"/>
+            <Button Grid.Column="1" x:Name="ButtonSendCommand" Text="Send" Command="{Binding SendCommand}"/>
+        </Grid>
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Entry Grid.Column="0" x:Name="EntryCommand" IsSpellCheckEnabled="False"  Text="{Binding Command}"/>
-            <Button Grid.Column="1" x:Name="ButtonSendCommand" Text="Send" Command="{Binding SendCommand}"/>
-        </Grid> 
+            <Label Grid.Column="0" x:Name="PacketReadCount" Text="Number of packets to read:"/>
+            <Entry Grid.Column="1" x:Name="NumPacketsToRead" IsSpellCheckEnabled="False" Keyboard="Numeric" Text="{Binding NumPacketsToReadStr}"/> 
+        </Grid>
+        <StackLayout Grid.Row="2" Orientation="Horizontal"> 
+            <Button x:Name="ButtonTraceHeartbeat" Text="Trace" Command="{Binding TraceHeartbeat}"/>
+            <Button x:Name="ButtonClearResponseLabel" Text="Clear" Command="{Binding ClearResponseLabel}"/>
+        </StackLayout>
+        <Grid Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Label Grid.Row="0" Text="Response:"/>
+            <ScrollView Grid.Row="1" Orientation="Vertical" VerticalScrollBarVisibility="Always">
+                <Label Text="{Binding Response}"/>
+            </ScrollView>
+        </Grid>
         <!--<StackLayout Orientation="Vertical">
             <Label Text="{Binding Descriptor.Id, StringFormat='Id: {0}'}"
                 FontSize="Medium"
