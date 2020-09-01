@@ -1,17 +1,25 @@
 ﻿using MvvmCross.Commands;
 using MvvmCross.ViewModels;
+using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
 using Plugin.BLE.Abstractions.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Xamarin.Forms.Xaml;
 
 namespace BLE.Client.ViewModels
 {
     public class DeviceCommunicationViewModel : BaseViewModel
-    {
+    { 
+        /// <summary>
+        /// The prompt that the board returns after a command. 
+        /// </summary>
         private const string CONSOLE_PROMPT = "emp_bm>";
 
         #region BINDINGS
@@ -32,6 +40,20 @@ namespace BLE.Client.ViewModels
             }
         }
 
+        private string _TraceVariable;
+        /// <summary>
+        /// The variable to trace.
+        /// </summary>
+        public string TraceVariable
+        {
+            get => _TraceVariable;
+            set
+            {
+                _TraceVariable = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private string _Response;
         /// <summary>
         /// The response from the board.
@@ -42,35 +64,50 @@ namespace BLE.Client.ViewModels
             set
             {
                 _Response = value;
+
                 RaisePropertyChanged();
             }
         }
-
-        /// <summary>
-        /// The maximum number of packets to read.
-        /// </summary>
-        private int numPacketsToRead;
-
+         
+        private string _PlotWindowRange;
         /// <summary>
         /// String wrapper around the maximum number of packets to read.
         /// </summary>
-        public string NumPacketsToReadStr
+        public string PlotWindowRange
         {
-            get => numPacketsToRead.ToString();
+            get => _PlotWindowRange;
             set
             {
-                numPacketsToRead = int.Parse(value);
+                _PlotWindowRange = value;
                 RaisePropertyChanged();
+
+                if (double.TryParse(value, out var res)
+                    && PlotModel != null && PacketAxis != null)
+                {
+                    PacketAxis.MaximumRange = res;
+                }
             }
         }
-        
+
+        private PlotModel _PlotModel;
+        public PlotModel PlotModel
+        {
+            get => _PlotModel;
+            set
+            {
+                _PlotModel = value;
+                RaisePropertyChanged(nameof(PlotModel));
+            }
+        }
+
         #endregion
 
         #region METHODS
 
-        public MvxCommand TraceHeartbeat => new MvxCommand(SendTraceHeartbeatCommands);
+        public MvxCommand StartTrace => new MvxCommand(StartTracing);
+        public MvxCommand StopTrace => new MvxCommand(StopTracing);
         public MvxCommand SendCommand => new MvxCommand(() => SendCommandToBoard(Command));
-        public MvxCommand ClearResponseLabel => new MvxCommand(ClearResponseText);
+        public MvxCommand ClearData => new MvxCommand(ClearCommandData);
 
         #endregion
 
@@ -98,30 +135,73 @@ namespace BLE.Client.ViewModels
         /// </summary>
         private int numPacketsRead;
 
+        private LineSeries PlotSeries { get { return PlotModel.Series[0] as LineSeries; } }
+        private Axis PacketAxis { get { return PlotModel.Axes[0]; } }
+
         public DeviceCommunicationViewModel(IAdapter adapter) : base(adapter)
         {
             Command = "ls";
             numPacketsRead = 0;
-            NumPacketsToReadStr = "128";
+            PlotWindowRange = "1024";
+            TraceVariable = "/control/heartbeat_cnt";
             state = ResponseState.WaitForID;
+
+            PlotModel = InitPlotModel();
+
+            PlotModel.InvalidatePlot(true);
+            RaisePropertyChanged(nameof(PlotModel));
         }
 
+        private PlotModel InitPlotModel()
+        {
+            var model = new PlotModel()
+            {
+                Title = "control/heartbeat_cnt Data"
+            };
+
+            var packetAxis = new LinearAxis()
+            {
+                Position = AxisPosition.Bottom,
+                Title = "Packet #",
+                MajorGridlineStyle = LineStyle.Solid,
+                MinorGridlineStyle = LineStyle.Dot,
+                IntervalLength = 80,
+                MinimumRange = 128,
+            };
+            model.Axes.Add(packetAxis);
+
+            var valueAxis = new LinearAxis()
+            {
+                Position = AxisPosition.Left,
+                MajorGridlineStyle = LineStyle.Solid,
+                MinorGridlineStyle = LineStyle.Dot,
+                Title = "Value"
+            };
+            model.Axes.Add(valueAxis);
+
+            var serie = new LineSeries
+            {
+                StrokeThickness = 2,
+                CanTrackerInterpolatePoints = false, 
+            };
+
+            model.Series.Add(serie); 
+
+            return model;
+        }
+        
         #region BUTTON DELEGATES
          
-        public async void SendTraceHeartbeatCommands()
-        {
-            // Clear the response data
-            Response = string.Empty;
-
+        public async void StartTracing()
+        { 
             var token = new CancellationToken();
 
             // These commands follow the EMPExplorer code
+
+            var traceCommand = $"trace {TraceVariable}";
             string[] cmds =
-            {
-                "trace_stop",
-                "trace_clear",
-                "trace /control/heartbeat_cnt",
-                "set /trace/packet_len 4",
+            { 
+                traceCommand, 
                 "trace_start"
             };
 
@@ -137,11 +217,28 @@ namespace BLE.Client.ViewModels
             }
         }
 
-        public async void SendCommandToBoard(string command)
+        public async void StopTracing()
         {
-            // Clear the response data
-            Response = string.Empty;
+            var token = new CancellationToken();
 
+            string[] cmds =
+            {
+                "trace_stop",
+                "trace_clear"
+            };
+
+            foreach (var cmd in cmds)
+            {
+                var packets = GetCommandPackets(cmd);
+                foreach (var packet in packets)
+                {
+                    await rx.WriteAsync(packet, token);
+                }
+            }
+        }
+
+        public async void SendCommandToBoard(string command)
+        { 
             // Write the command  
             var packets = GetCommandPackets(command);
             foreach (var packet in packets)
@@ -150,16 +247,18 @@ namespace BLE.Client.ViewModels
             }
         }
 
-        private void ClearResponseText()
+        private void ClearCommandData()
         {
             Response = string.Empty;
+
+            PlotSeries.Points.Clear();
+            PlotSeries.PlotModel.InvalidatePlot(true);
         }
-         
+        
         #endregion
 
         private IEnumerable<byte[]> GetCommandPackets(string command)
-        {
-            Response = "Tracing /control/heartbeat:\n";
+        { 
             // Append a newline if necessary
             var commandWithNewline = (command.Last() == '\n') ? command : $"{command}\n";
 
@@ -176,19 +275,34 @@ namespace BLE.Client.ViewModels
 
             return packets;
         }
-         
+
+        private byte[] unfinishedTxPacketBytes = null;
+
         /// <summary>
         /// Parses the updated TX value according to the structure of the packets that return from the board.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void TxValueUpdated(object sender, Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs e)
-        { 
-            // This function is rather a mess :)
-            var buffer = tx.Value;
+        {
+            // Prepend an unfinished message from a previous tx transaction if one exists
+            byte[] buffer;
+            if (unfinishedTxPacketBytes != null)
+            {
+                buffer = new byte[unfinishedTxPacketBytes.Length + tx.Value.Length];
+                Array.Copy(unfinishedTxPacketBytes, buffer, unfinishedTxPacketBytes.Length);
+                Array.Copy(tx.Value, 0, buffer, unfinishedTxPacketBytes.Length, tx.Value.Length);
+                state = ResponseState.WaitForID;
+            }
+            else
+            { 
+                buffer = tx.Value;
+            }
+
             byte packetID = 0;
             int packetLength = 0, packetIndex = 0;
             byte[] packetData = new byte[0]; 
+            int finishedPacketLastByteIndex = -1;
 
             // Parse data bytewise to interpret what's going on (code adapted from EmpExplorer)
             for (int i = 0; i < buffer.Length; i++)
@@ -211,6 +325,7 @@ namespace BLE.Client.ViewModels
                             state = ResponseState.WaitForPacket;
                             packetData = new byte[packetLength];
                         }
+                         
                         break;
                     case ResponseState.WaitForLen1:
                         packetLength = data << 8;
@@ -223,72 +338,97 @@ namespace BLE.Client.ViewModels
                         packetData = new byte[packetLength];
                         packetIndex = 0;
 
-                        if (packetLength == 0)
+                        if (packetLength <= 0)
                         {
                             state = ResponseState.WaitForID;
                         }
 
                         break;
-                    case ResponseState.WaitForPacket:
+                    case ResponseState.WaitForPacket: 
                         packetData[packetIndex++] = data;
                         if (packetIndex == packetLength)
                         {
                             packetIndex = 0;
                             state = ResponseState.WaitForID;
+                            finishedPacketLastByteIndex = i;
 
                             switch (packetID)
                             {
                                 case PACKETID_PRINTF:
                                     var str = Encoding.ASCII.GetString(packetData).Replace(CONSOLE_PROMPT, "");
-                                    Response += str;
+                                    Response += str; Console.Write(str);
                                     break;
                                 case PACKETID_SCAN:
                                     // TODO
                                     break;
-                                case PACKETID_TRACE:
-                                    string format = "Read: {0}\n";
-                                    string toPrint;
+                                case PACKETID_TRACE:  
+                                    DataPoint dp;
                                     switch (packetLength)
                                     {
-                                        case 1:
-                                            toPrint = string.Format(format, packetData[0]);
+                                        case 1: 
+                                            dp = new DataPoint(numPacketsRead, packetData[0]);
                                             break;
-                                        case 2:
-                                            toPrint = string.Format(format, BitConverter.ToInt16(packetData, 0));
+                                        case 2: 
+                                            dp = new DataPoint(numPacketsRead, BitConverter.ToInt16(packetData, 0));
                                             break;
                                         case 4:
-                                            toPrint = string.Format(format, BitConverter.ToInt32(packetData, 0));
+                                            dp = new DataPoint(numPacketsRead, BitConverter.ToInt32(packetData, 0));
                                             break;
-                                        case 8:
-                                            toPrint = string.Format(format, BitConverter.ToInt64(packetData, 0)); 
+                                        case 8: 
+                                            dp = new DataPoint(numPacketsRead, BitConverter.ToInt64(packetData, 0));
                                             break;
                                         default:
                                             throw new NotImplementedException($"Packet length {packetLength} not implemented in TxValueUpdated()!");
-                                    } 
+                                    }
 
-                                    Response += toPrint; 
+                                    AddPointToGraph(dp); 
                                     break;
                                 case PACKETID_PROXY:
                                     // TODO
                                     break;
                                 default:
                                     throw new FormatException($"Packet ID {packetID} is invalid or its data conversion is unimplemented in TxValueUpdated()!");
-                            }
-
-                            // Increase the packet count and check if it's time to stop
-                            if (numPacketsRead++ == numPacketsToRead)
-                            {
-                                var task = tx.StopUpdatesAsync();
-                                task.Wait(TimeSpan.FromMilliseconds(500));
-                                Response += $"Read {numPacketsToRead} packets - stopping updates.";
-
-                                // !TODO how to proceed here
-                            }
+                            } 
                         }
                         break;
                     default:
                         break;
                 }
+            } 
+
+            // If the current message spans multiple packets, store the remainder of the message for the next transmission
+            if (finishedPacketLastByteIndex != buffer.Length - 1)
+            { 
+                if (unfinishedTxPacketBytes != null)
+                {
+                    var newBuffer = new byte[buffer.Length - finishedPacketLastByteIndex - 1];
+                    Array.Copy(buffer, finishedPacketLastByteIndex + 1, newBuffer, 0, newBuffer.Length);
+                    unfinishedTxPacketBytes = newBuffer;
+                }
+                else
+                {
+                    unfinishedTxPacketBytes = new byte[buffer.Length - finishedPacketLastByteIndex - 1];
+                    Array.Copy(buffer, finishedPacketLastByteIndex + 1, unfinishedTxPacketBytes, 0, buffer.Length - finishedPacketLastByteIndex - 1);
+                }
+            }
+            else
+            {
+                unfinishedTxPacketBytes = null;
+            }
+        }
+
+        /// <summary>
+        /// Adds the given point to the plot.
+        /// </summary>
+        /// <param name="point"></param>
+        private void AddPointToGraph(DataPoint point)
+        {
+            numPacketsRead++;
+            if (PlotSeries != null)
+            {
+                PlotSeries.Points.Add(point);
+
+                PlotModel.InvalidatePlot(true);
             }
         }
         
@@ -298,14 +438,22 @@ namespace BLE.Client.ViewModels
         {
             base.Prepare(parameters);
 
-            FindAndStoreCharacteristics(parameters);
+            // Deal with async stuff
+            PrepareAsync(parameters);
+        }
+
+        private async void PrepareAsync(MvxBundle parameters)
+        {
+            await FindAndStoreCharacteristics(parameters);
+            await BeginRxTxUpdates();
+            await InitConnection();
         }
 
         /// <summary>
         /// Finds and stores references to the RX and TX characteristics attached to the current device.
         /// </summary>
         /// <param name="parameters"></param>
-        private async void FindAndStoreCharacteristics(MvxBundle parameters)
+        private async Task FindAndStoreCharacteristics(MvxBundle parameters)
         {
             // Get the characteristics from the device
             var device = GetDeviceFromBundle(parameters);
@@ -314,20 +462,35 @@ namespace BLE.Client.ViewModels
             var characteristics = await service.GetCharacteristicsAsync();
              
             // RX first, TX second
-            rx = characteristics[0]; tx = characteristics[1];
-
-            //  Listen for updates on rx and tx
-            BeginRxTxUpdates();
+            rx = characteristics[0]; tx = characteristics[1];  
         }
 
         /// <summary>
         /// Starts TX updates and attaches value update delegates to rx and tx.
         /// </summary>
-        private async void BeginRxTxUpdates()
+        private async Task BeginRxTxUpdates()
         {
             tx.ValueUpdated += TxValueUpdated;
             rx.ValueUpdated += TxValueUpdated;
             await tx.StartUpdatesAsync();
+        }
+
+        private async Task InitConnection()
+        {
+            // Enable prntf packets and set packet size, then stop and clear tracing
+            string[] cmds =
+            {
+                "set /sys/prntf_packet_enable 1",
+                "set /trace/packet_len 4",
+                "trace_stop",
+                "trace_clear", 
+            };
+
+            foreach (var cmd in cmds)
+            {
+                await Task.Run(() => SendCommandToBoard(cmd));
+                await Task.Delay(500);
+            } 
         }
 
         #endregion

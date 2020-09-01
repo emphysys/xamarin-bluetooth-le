@@ -17,7 +17,8 @@ namespace BLE.Client.iOS
     public class Setup : MvxFormsIosSetup
     {
         protected override IMvxApplication CreateApp()
-        {
+        { 
+            OxyPlot.Xamarin.Forms.Platform.iOS.PlotViewRenderer.Init();
             return new BleMvxApplication();
         }
 
@@ -25,9 +26,9 @@ namespace BLE.Client.iOS
         {
             base.InitializeIoC();
 
-            Mvx.RegisterSingleton(() => UserDialogs.Instance);
-            Mvx.RegisterSingleton(() => CrossSettings.Current);
-            Mvx.RegisterSingleton(() => CrossPermissions.Current);
+            Mvx.IoCProvider.RegisterSingleton(() => UserDialogs.Instance);
+            Mvx.IoCProvider.RegisterSingleton(() => CrossSettings.Current);
+            Mvx.IoCProvider.RegisterSingleton(() => CrossPermissions.Current); 
         }
 
         protected override Xamarin.Forms.Application CreateFormsApplication()

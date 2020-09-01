@@ -4,36 +4,50 @@
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
             xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
+            xmlns:oxy="clr-namespace:OxyPlot.Xamarin.Forms;assembly=OxyPlot.Xamarin.Forms"
             x:Class="BLE.Client.Pages.DeviceCommunicationPage"
             Title="Device Communication">
     <Grid> 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition> 
             <RowDefinition Height="Auto"></RowDefinition> 
-            <RowDefinition Height="Auto"></RowDefinition> 
-            <RowDefinition Height="Auto"></RowDefinition> 
+            <RowDefinition Height="Auto"></RowDefinition>  
+            <RowDefinition Height="Auto"></RowDefinition>  
+            <RowDefinition Height="*"></RowDefinition> 
+            <RowDefinition Height="2*"></RowDefinition> 
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/> 
             </Grid.ColumnDefinitions>
-            <Entry Grid.Column="0" x:Name="EntryCommand" IsSpellCheckEnabled="False" Keyboard="Plain" Text="{Binding Command}"/>
-            <Button Grid.Column="1" x:Name="ButtonSendCommand" Text="Send" Command="{Binding SendCommand}"/>
+            <Label Grid.Column="0" Text="Send Command:"/>
+            <Entry Grid.Column="1" x:Name="EntryCommand" IsSpellCheckEnabled="False" Keyboard="Plain" Text="{Binding Command}"/>
+            <Button Grid.Column="2" x:Name="ButtonSendCommand" Text="Send" Command="{Binding SendCommand}"/>
         </Grid>
         <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Text="Trace Variable:"/>
+            <Entry Grid.Column="1" IsSpellCheckEnabled="False" Keyboard="Plain" Text="{Binding TraceVariable}"/>
+        </Grid>
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" x:Name="PacketReadCount" Text="Number of packets to read:"/>
-            <Entry Grid.Column="1" x:Name="NumPacketsToRead" IsSpellCheckEnabled="False" Keyboard="Numeric" Text="{Binding NumPacketsToReadStr}"/> 
+            <Label Grid.Column="0" x:Name="PacketReadCount" Text="Packet Plot Window Size:"/>
+            <Entry Grid.Column="1" x:Name="NumPacketsToRead" IsSpellCheckEnabled="False" Keyboard="Numeric" Text="{Binding PlotWindowRange}"/> 
         </Grid>
-        <StackLayout Grid.Row="2" Orientation="Horizontal"> 
-            <Button x:Name="ButtonTraceHeartbeat" Text="Trace" Command="{Binding TraceHeartbeat}"/>
-            <Button x:Name="ButtonClearResponseLabel" Text="Clear" Command="{Binding ClearResponseLabel}"/>
+        <StackLayout Grid.Row="3" HorizontalOptions="FillAndExpand" Orientation="Horizontal"> 
+            <Button x:Name="ButtonTraceHeartbeat" HorizontalOptions="CenterAndExpand" Text="Trace" Command="{Binding StartTrace}"/>
+            <Button x:Name="ButtonStopTrace" HorizontalOptions="CenterAndExpand" Text="Stop Trace" Command="{Binding StopTrace}"/>
+            <Button x:Name="ButtonClearResponseLabel" HorizontalOptions="CenterAndExpand" Text="Clear" Command="{Binding ClearData}"/>
         </StackLayout>
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="4">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -43,30 +57,8 @@
                 <Label Text="{Binding Response}"/>
             </ScrollView>
         </Grid>
-        <!--<StackLayout Orientation="Vertical">
-            <Label Text="{Binding Descriptor.Id, StringFormat='Id: {0}'}"
-                FontSize="Medium"
-                HorizontalTextAlignment="Center"></Label>
-            <Label Text="{Binding Descriptor.Name}" FontSize="Small" TextColor="Gray"
-                HorizontalTextAlignment="Center"></Label>
-            <Label Text="{Binding DescriptorValue, StringFormat='Value: {0}'}"></Label>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"></ColumnDefinition>
-                    <ColumnDefinition Width="Auto"></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <Button Text="Read" Command="{Binding ReadCommand}"></Button>
-                <Button Grid.Column="1" Text="Write" Command="{Binding WriteCommand}"></Button>
-            </Grid>
+        <StackLayout Grid.Row="5">
+            <oxy:PlotView Model="{Binding PlotModel}" VerticalOptions="FillAndExpand"  HorizontalOptions="FillAndExpand"/>
         </StackLayout>
-        <ListView Grid.Row="1" ItemsSource="{Binding Messages}" CachingStrategy="RecycleElement">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <ViewCell Height="50">
-                        <Label Text="{Binding .}" VerticalTextAlignment="Center" FontSize="Small"></Label>
-                    </ViewCell>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>-->
     </Grid>
 </views:MvxContentPage>

@@ -13,6 +13,12 @@ namespace BLE.Client.Droid
 {
     public class Setup : MvxFormsAndroidSetup<BleMvxApplication, BleMvxFormsApp>
     {
+        protected override IMvxApplication CreateApp()
+        {
+            OxyPlot.Xamarin.Forms.Platform.Android.PlotViewRenderer.Init();
+            return base.CreateApp();
+        }
+
         public override IEnumerable<Assembly> GetViewAssemblies()
         {
             return new List<Assembly>(base.GetViewAssemblies().Union(new[] { typeof(BleMvxFormsApp).GetTypeInfo().Assembly }));
