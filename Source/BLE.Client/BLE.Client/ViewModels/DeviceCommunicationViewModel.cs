@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Xamarin.Forms.Xaml;
 
 namespace BLE.Client.ViewModels
@@ -71,7 +72,7 @@ namespace BLE.Client.ViewModels
          
         private string _PlotWindowRange;
         /// <summary>
-        /// String wrapper around the maximum number of packets to read.
+        /// The range of the plot window, in seconds.
         /// </summary>
         public string PlotWindowRange
         {
@@ -84,7 +85,11 @@ namespace BLE.Client.ViewModels
                 if (double.TryParse(value, out var res)
                     && PlotModel != null && PacketAxis != null)
                 {
-                    PacketAxis.MaximumRange = res;
+                    // Calculate the delta (as a double) between two times *res* s apart
+                    var now = DateTime.Now;
+                    var future = now.AddSeconds(res);
+                    var delta = DateTimeAxis.ToDouble(future) - DateTimeAxis.ToDouble(now);
+                    PacketAxis.MaximumRange = delta;
                 }
             }
         }
@@ -103,11 +108,11 @@ namespace BLE.Client.ViewModels
         #endregion
 
         #region METHODS
-
+        // These are referenced as button commands in the xaml
         public MvxCommand StartTrace => new MvxCommand(StartTracing);
         public MvxCommand StopTrace => new MvxCommand(StopTracing);
         public MvxCommand SendCommand => new MvxCommand(() => SendCommandToBoard(Command));
-        public MvxCommand ClearData => new MvxCommand(ClearCommandData);
+        public MvxCommand ClearData => new MvxCommand(ClearPrntfAndPlotData);
 
         #endregion
 
@@ -115,13 +120,20 @@ namespace BLE.Client.ViewModels
 
         #region PACKET RESPONSE STUFF
 
+        // Relevant for parsing data out of bluetooth packets
         private const byte PACKETID_PRINTF = 0xaa;
         private const byte PACKETID_SCAN = 0xbb;
         private const byte PACKETID_TRACE = 0xcc;
         private const byte PACKETID_PROXY = 0xdd;
 
+        /// <summary>
+        /// The state of packet parsing.
+        /// </summary>
         private enum ResponseState { WaitForID, WaitForLen1, WaitForLen2, WaitForPacket }
 
+        /// <summary>
+        /// The current packet parsing state.
+        /// </summary>
         private ResponseState state;
         #endregion
 
@@ -129,20 +141,27 @@ namespace BLE.Client.ViewModels
         /// The RX and TX characteristics through which to communicate.
         /// </summary>
         private ICharacteristic rx, tx;
+        
+        /// <summary>
+        /// Any leftover bytes from previous packets. Null if there is no leftover data.
+        /// </summary>
+        private byte[] unfinishedTxPacketBytes = null;
 
         /// <summary>
-        /// The number of packets read so far.
+        /// The series (collection of points) to use. If PlotModel is null, this will throw!
         /// </summary>
-        private int numPacketsRead;
-
         private LineSeries PlotSeries { get { return PlotModel.Series[0] as LineSeries; } }
-        private Axis PacketAxis { get { return PlotModel.Axes[0]; } }
+
+        /// <summary>
+        /// The x-axis. If PlotModel is null, this will throw!
+        /// </summary>
+        private DateTimeAxis PacketAxis { get { return PlotModel.Axes[0] as DateTimeAxis; } }
+
 
         public DeviceCommunicationViewModel(IAdapter adapter) : base(adapter)
         {
-            Command = "ls";
-            numPacketsRead = 0;
-            PlotWindowRange = "1024";
+            Command = "ls"; 
+            PlotWindowRange = "5";
             TraceVariable = "/control/heartbeat_cnt";
             state = ResponseState.WaitForID;
 
@@ -152,21 +171,25 @@ namespace BLE.Client.ViewModels
             RaisePropertyChanged(nameof(PlotModel));
         }
 
+
+        #region PLOT STUFF
+
         private PlotModel InitPlotModel()
         {
             var model = new PlotModel()
             {
-                Title = "control/heartbeat_cnt Data"
+                Title = "Press 'Trace' to Plot Trace Variable",
+                TitleColor = OxyColors.DarkRed
             };
 
-            var packetAxis = new LinearAxis()
+            var packetAxis = new DateTimeAxis()
             {
                 Position = AxisPosition.Bottom,
-                Title = "Packet #",
+                Title = "Time",
                 MajorGridlineStyle = LineStyle.Solid,
                 MinorGridlineStyle = LineStyle.Dot,
-                IntervalLength = 80,
-                MinimumRange = 128,
+                StringFormat = "HH:mm:ss",
+                IntervalLength = 65
             };
             model.Axes.Add(packetAxis);
 
@@ -182,28 +205,49 @@ namespace BLE.Client.ViewModels
             var serie = new LineSeries
             {
                 StrokeThickness = 2,
-                CanTrackerInterpolatePoints = false, 
+                CanTrackerInterpolatePoints = false,
             };
 
-            model.Series.Add(serie); 
+            model.Series.Add(serie);
 
             return model;
         }
-        
-        #region BUTTON DELEGATES
-         
+
+        /// <summary>
+        /// Adds the given point to the plot.
+        /// </summary>
+        /// <param name="point"></param>
+        private void AddPointToGraph(DataPoint point)
+        {
+            if (PlotSeries != null)
+            {
+                PlotSeries.Points.Add(point);
+
+                PlotModel.InvalidatePlot(true);
+            }
+        }
+
+        #endregion
+
+        #region COMMANDS AND TRACING
+
+        /// <summary>
+        /// Begins tracing the variable specified in local property *TraceVariable*.
+        /// </summary>
         public async void StartTracing()
         { 
-            var token = new CancellationToken();
-
-            // These commands follow the EMPExplorer code
-
             var traceCommand = $"trace {TraceVariable}";
             string[] cmds =
             { 
                 traceCommand, 
                 "trace_start"
             };
+
+            PlotModel.Title = traceCommand;
+            PlotModel.TitleColor = OxyColors.ForestGreen;
+            PlotSeries.Color = OxyColors.ForestGreen;
+
+            var token = new CancellationToken();
 
             foreach (var cmd in cmds)
             {
@@ -217,6 +261,9 @@ namespace BLE.Client.ViewModels
             }
         }
 
+        /// <summary>
+        /// Cancels and clears all tracing instructions.
+        /// </summary>
         public async void StopTracing()
         {
             var token = new CancellationToken();
@@ -226,6 +273,10 @@ namespace BLE.Client.ViewModels
                 "trace_stop",
                 "trace_clear"
             };
+
+            PlotModel.Title = "Press 'Trace' to Plot Trace Variable";
+            PlotModel.TitleColor = OxyColors.DarkRed;
+            PlotSeries.Color = OxyColors.DarkRed;
 
             foreach (var cmd in cmds)
             {
@@ -237,6 +288,10 @@ namespace BLE.Client.ViewModels
             }
         }
 
+        /// <summary>
+        /// Sends the given command to the board as an array of ASCII bytes.
+        /// </summary>
+        /// <param name="command">The command to send, without a line break.</param>
         public async void SendCommandToBoard(string command)
         { 
             // Write the command  
@@ -247,18 +302,24 @@ namespace BLE.Client.ViewModels
             }
         }
 
-        private void ClearCommandData()
+        /// <summary>
+        /// Clears the prntf data and wipes the plot.
+        /// </summary>
+        private void ClearPrntfAndPlotData()
         {
             Response = string.Empty;
 
             PlotSeries.Points.Clear();
             PlotSeries.PlotModel.InvalidatePlot(true);
         }
-        
-        #endregion
 
+        /// <summary>
+        /// Breaks a string command into a sequence of 20-byte packets to send to the board.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns>Packets to send.</returns>
         private IEnumerable<byte[]> GetCommandPackets(string command)
-        { 
+        {
             // Append a newline if necessary
             var commandWithNewline = (command.Last() == '\n') ? command : $"{command}\n";
 
@@ -276,7 +337,7 @@ namespace BLE.Client.ViewModels
             return packets;
         }
 
-        private byte[] unfinishedTxPacketBytes = null;
+        #endregion
 
         /// <summary>
         /// Parses the updated TX value according to the structure of the packets that return from the board.
@@ -363,19 +424,20 @@ namespace BLE.Client.ViewModels
                                     break;
                                 case PACKETID_TRACE:  
                                     DataPoint dp;
+                                    var datetime = DateTimeAxis.ToDouble(DateTime.Now);
                                     switch (packetLength)
                                     {
-                                        case 1: 
-                                            dp = new DataPoint(numPacketsRead, packetData[0]);
+                                        case 1:  
+                                            dp = new DataPoint(datetime, packetData[0]);
                                             break;
                                         case 2: 
-                                            dp = new DataPoint(numPacketsRead, BitConverter.ToInt16(packetData, 0));
+                                            dp = new DataPoint(datetime, BitConverter.ToInt16(packetData, 0));
                                             break;
                                         case 4:
-                                            dp = new DataPoint(numPacketsRead, BitConverter.ToInt32(packetData, 0));
+                                            dp = new DataPoint(datetime, BitConverter.ToInt32(packetData, 0));
                                             break;
                                         case 8: 
-                                            dp = new DataPoint(numPacketsRead, BitConverter.ToInt64(packetData, 0));
+                                            dp = new DataPoint(datetime, BitConverter.ToInt64(packetData, 0));
                                             break;
                                         default:
                                             throw new NotImplementedException($"Packet length {packetLength} not implemented in TxValueUpdated()!");
@@ -417,21 +479,6 @@ namespace BLE.Client.ViewModels
             }
         }
 
-        /// <summary>
-        /// Adds the given point to the plot.
-        /// </summary>
-        /// <param name="point"></param>
-        private void AddPointToGraph(DataPoint point)
-        {
-            numPacketsRead++;
-            if (PlotSeries != null)
-            {
-                PlotSeries.Points.Add(point);
-
-                PlotModel.InvalidatePlot(true);
-            }
-        }
-        
         #region BASEVIEWMODEL PREPARATION
          
         public override void Prepare(MvxBundle parameters)

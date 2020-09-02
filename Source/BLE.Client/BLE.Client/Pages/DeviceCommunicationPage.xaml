@@ -39,8 +39,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" x:Name="PacketReadCount" Text="Packet Plot Window Size:"/>
-            <Entry Grid.Column="1" x:Name="NumPacketsToRead" IsSpellCheckEnabled="False" Keyboard="Numeric" Text="{Binding PlotWindowRange}"/> 
+            <Label Grid.Column="0" x:Name="PacketReadCount" Text="Window Size, in seconds:"/>
+            <Entry Grid.Column="1" x:Name="NumPacketsToRead" IsSpellCheckEnabled="False" Keyboard="Numeric"  Text="{Binding PlotWindowRange}"/> 
         </Grid>
         <StackLayout Grid.Row="3" HorizontalOptions="FillAndExpand" Orientation="Horizontal"> 
             <Button x:Name="ButtonTraceHeartbeat" HorizontalOptions="CenterAndExpand" Text="Trace" Command="{Binding StartTrace}"/>
@@ -52,9 +52,9 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Label Grid.Row="0" Text="Response:"/>
+            <Label Grid.Row="0" Text="prntf Data:" FontAttributes="Bold"/>
             <ScrollView Grid.Row="1" Orientation="Vertical" VerticalScrollBarVisibility="Always">
-                <Label Text="{Binding Response}"/>
+                <Label Text="{Binding Response}" TextColor="SlateGray"/>
             </ScrollView>
         </Grid>
         <StackLayout Grid.Row="5">
