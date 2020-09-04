@@ -334,7 +334,7 @@ namespace BLE.Client.ViewModels
                     await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<ServiceListViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string> { { DeviceIdKey, device.Device.Id.ToString() } }));
                 });
 
-                config.Add("Send Command", async () =>
+                config.Add("Communicate with Device", async () =>
                 {
                     await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<DeviceCommunicationViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string> { { DeviceIdKey, device.Device.Id.ToString() } }));
                 });
@@ -347,8 +347,8 @@ namespace BLE.Client.ViewModels
                 {
                     if (await ConnectDeviceAsync(device))
                     {
-                        var navigation = Mvx.IoCProvider.Resolve<IMvxNavigationService>();
-                        await navigation.Navigate<ServiceListViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string> { { DeviceIdKey, device.Device.Id.ToString() } }));
+                        //var navigation = Mvx.IoCProvider.Resolve<IMvxNavigationService>();
+                        //await navigation.Navigate<ServiceListViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string> { { DeviceIdKey, device.Device.Id.ToString() } }));
                     }
                 });
 

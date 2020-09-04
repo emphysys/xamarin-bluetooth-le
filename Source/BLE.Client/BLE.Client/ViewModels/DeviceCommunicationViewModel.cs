@@ -7,12 +7,9 @@ using Plugin.BLE.Abstractions.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
-using Xamarin.Forms.Xaml;
 
 namespace BLE.Client.ViewModels
 {
@@ -208,23 +205,25 @@ namespace BLE.Client.ViewModels
                 CanTrackerInterpolatePoints = false,
             };
 
-            model.Series.Add(serie);
+            model.Series.Add(serie); 
 
             return model;
         }
-
+         
         /// <summary>
         /// Adds the given point to the plot.
         /// </summary>
         /// <param name="point"></param>
         private void AddPointToGraph(DataPoint point)
         {
-            if (PlotSeries != null)
+            var points = PlotSeries.Points;
+            
+            lock(PlotModel.SyncRoot)
             {
-                PlotSeries.Points.Add(point);
-
-                PlotModel.InvalidatePlot(true);
+                points.Add(point);
             }
+
+            PlotModel.InvalidatePlot(true);
         }
 
         #endregion
@@ -504,12 +503,26 @@ namespace BLE.Client.ViewModels
         {
             // Get the characteristics from the device
             var device = GetDeviceFromBundle(parameters);
-            var services = await device.GetServicesAsync(); 
-            var service = services[0];
+            var services = await device.GetServicesAsync();
+
+            // The following is platform-dependent (needs to change as well probably)
+            IService service = null;
+
+            if (services.Count == 3)
+            {
+                // Android
+                service = services[2];
+            }
+            else if (services.Count == 1)
+            {
+                // iOS
+                service = services[0];
+            }
+
             var characteristics = await service.GetCharacteristicsAsync();
-             
+
             // RX first, TX second
-            rx = characteristics[0]; tx = characteristics[1];  
+            rx = characteristics[0]; tx = characteristics[1];
         }
 
         /// <summary>
@@ -540,6 +553,6 @@ namespace BLE.Client.ViewModels
             } 
         }
 
-        #endregion
+#endregion
     }
 }

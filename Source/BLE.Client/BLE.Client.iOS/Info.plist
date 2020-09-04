@@ -28,17 +28,13 @@
 	<string>com.plugin.ble</string>
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
 	<key>CFBundleName</key>
 	<string>BLE.Client</string>
-	<key>XSAppIconAssets</key>
-	<string>Assets.xcassets/AppIcon.appiconset</string>
-	<key>XSLaunchImageAssets</key>
-	<string>Assets.xcassets/LaunchImage.launchimage</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-    <string>Needed in order to communicate with with Bluetooth peripherals</string>
-    <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>Needed in order to use the Bluetooth subsystem</string>
+	<string>Needed in order to communicate with with Bluetooth peripherals</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Needed in order to use the Bluetooth subsystem</string>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 </dict>
 </plist>
