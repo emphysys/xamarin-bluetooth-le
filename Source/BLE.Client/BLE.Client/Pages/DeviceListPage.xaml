@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <views:MvxTabbedPage x:TypeArguments="viewModels:DeviceListViewModel" 
-             xmlns="http://xamarin.com/schemas/2014/forms"
-             xmlns:c="clr-namespace:BLE.Client.Converters"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
-             xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
-             x:Class="BLE.Client.Pages.DeviceListPage"
-             Title="Discover Bluetooth Devices"
-             x:Name="DevicePage">
+            xmlns="http://xamarin.com/schemas/2014/forms"
+            xmlns:c="clr-namespace:BLE.Client.Converters"
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
+            xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
+            x:Class="BLE.Client.Pages.DeviceListPage"
+            Title="Discover Bluetooth Devices"
+            x:Name="DevicePage"         
+            BackgroundColor="DarkGray"
+            BarTextColor="GhostWhite"
+            SelectedTabColor="LightSteelBlue">
     <views:MvxTabbedPage.Resources>
         <ResourceDictionary>
             <c:BluetoothNameConverter x:Key="BluetoothNameConverter"/>
@@ -36,10 +39,15 @@
                                          Value="false">
                                 <Setter Property="BackgroundColor" Value="#33333300"/>
                             </DataTrigger>
+                            <DataTrigger TargetType="Grid"
+                                         Binding="{Binding Name, Converter={StaticResource DeviceNameToGrayOutConverter}}"
+                                         Value="true">
+                                <Setter Property="BackgroundColor" Value="#3333bbee"/>
+                            </DataTrigger>
                         </Grid.Triggers>
                         <StackLayout Orientation="Vertical" VerticalOptions="Center">
                             <Label Text="{Binding Name, Converter={StaticResource BluetoothNameConverter}}" FontSize="Large" />
-                            <Label Text="{Binding Id, StringFormat='GUID: {0}'}" TextColor="Gray" FontSize="Small"/>
+                            <Label Text="{Binding Id, StringFormat='GUID: {0}'}" TextColor="DimGray" FontSize="Small"/>
                         </StackLayout>
                         <Label Grid.Column="1"
                          Margin="10"
@@ -52,7 +60,7 @@
     </views:MvxTabbedPage.Resources>
     <views:MvxTabbedPage.Children>
         <ContentPage Title="Scan for devices">
-            <Grid>
+            <Grid BackgroundColor="DarkGray">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
@@ -66,12 +74,13 @@
                 </StackLayout>
                 <ListView Grid.Row="1" ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
                  IsPullToRefreshEnabled="True"
-                 RefreshCommand="{Binding RefreshCommand}"
-                 IsRefreshing="{Binding IsRefreshing, Mode=OneWay}"
+                 RefreshCommand="{Binding RefreshCommand}" 
                  RowHeight="80"
-                 ItemTemplate="{StaticResource DeviceItemTemplate}">
+                 ItemTemplate="{StaticResource DeviceItemTemplate}"
+                          BackgroundColor="DarkGray">
                 </ListView>
-                <Label Grid.Row="2" Text="{Binding PreviousGuid, StringFormat='Previous GUID: {0}', Converter={StaticResource PreviousGUIDConverter}}" FontSize="Small" TextColor="Gray" VerticalTextAlignment="End"/>
+                <Label Grid.Row="2" Text="{Binding PreviousGuid, StringFormat='Previous GUID: {0}', Converter={StaticResource PreviousGUIDConverter}}" FontSize="Small" 
+                       TextColor="GhostWhite" HorizontalOptions="Center" VerticalOptions="Center" VerticalTextAlignment="End"/>
                 <StackLayout Grid.Row="3" Orientation="Horizontal" HorizontalOptions="Fill">
                     <StackLayout.IsVisible>
                         <OnPlatform x:TypeArguments="x:Boolean" iOS="false" Android="true" />
@@ -79,18 +88,19 @@
                     <Label Text="Use Android AutoConnect" HorizontalOptions="StartAndExpand" VerticalOptions="Center"/>
                     <Switch IsToggled="{Binding UseAutoConnect}" HorizontalOptions="End"></Switch>
                 </StackLayout>
-                <Button Text="Scan" Command="{Binding RefreshCommand}" />
+                <Button Text="Scan" BackgroundColor="SteelBlue" TextColor="GhostWhite" Command="{Binding RefreshCommand}" Margin="5,5,5,5"/>
                 <StackLayout Grid.Row="5" Orientation="Horizontal">
-                    <Button Text="Connect to previous" Command="{Binding ConnectToPreviousCommand}" HorizontalOptions="FillAndExpand"/>
-                    <Button Text="Stop Scan" Command="{Binding StopScanCommand}" HorizontalOptions="End"/>
-                    <ActivityIndicator IsRunning="{Binding IsRefreshing}"
+                    <Button x:Name="buttonConnectToPrevious" Text="Connect to Previous" BackgroundColor="SteelBlue" 
+                            TextColor="GhostWhite" Command="{Binding ConnectToPreviousCommand}" HorizontalOptions="FillAndExpand" Margin="5,5,5,5"/>
+                    <Button x:Name="buttonStopScan" Text="Stop Scan" Padding="5,5,5,5" BackgroundColor="SteelBlue" TextColor="GhostWhite"
+                            IsVisible="{Binding Source={x:Reference Name=buttonStopScan}, Path=IsEnabled}" Command="{Binding StopScanCommand}" HorizontalOptions="End" Margin="5,5,5,5"/>
+                    <!--<ActivityIndicator IsRunning="{Binding IsRefreshing}"
                              IsVisible="{Binding IsRefreshing}"
-                             HeightRequest="24"
+                             HeightRequest="24" 
                              WidthRequest="24"
                              VerticalOptions="Center"
-                             HorizontalOptions="End"/>
+                             HorizontalOptions="End"/>-->
                 </StackLayout>
-
             </Grid>
         </ContentPage>
         <ContentPage Title="System devices">

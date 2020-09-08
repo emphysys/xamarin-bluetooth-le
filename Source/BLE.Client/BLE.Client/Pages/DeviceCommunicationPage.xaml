@@ -1,64 +1,96 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<views:MvxContentPage x:TypeArguments="viewModels:DeviceCommunicationViewModel" 
+<views:MvxTabbedPage x:TypeArguments="viewModels:DeviceCommunicationViewModel" 
                     xmlns="http://xamarin.com/schemas/2014/forms"
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
             xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
             xmlns:oxy="clr-namespace:OxyPlot.Xamarin.Forms;assembly=OxyPlot.Xamarin.Forms"
             x:Class="BLE.Client.Pages.DeviceCommunicationPage"
-            Title="Device Communication">
-    <Grid> 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"></RowDefinition> 
-            <RowDefinition Height="Auto"></RowDefinition> 
-            <RowDefinition Height="Auto"></RowDefinition>  
-            <RowDefinition Height="Auto"></RowDefinition>  
-            <RowDefinition Height="*"></RowDefinition> 
-            <RowDefinition Height="2*"></RowDefinition> 
-        </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/> 
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Text="Send Command:"/>
-            <Entry Grid.Column="1" x:Name="EntryCommand" IsSpellCheckEnabled="False" Keyboard="Plain" Text="{Binding Command}"/>
-            <Button Grid.Column="2" x:Name="ButtonSendCommand" Text="Send" Command="{Binding SendCommand}"/>
-        </Grid>
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Text="Trace Variable:"/>
-            <Entry Grid.Column="1" IsSpellCheckEnabled="False" Keyboard="Plain" Text="{Binding TraceVariable}"/>
-        </Grid>
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" x:Name="PacketReadCount" Text="Window Size, in seconds:"/>
-            <Entry Grid.Column="1" x:Name="NumPacketsToRead" IsSpellCheckEnabled="False" Keyboard="Numeric"  Text="{Binding PlotWindowRange}"/> 
-        </Grid>
-        <StackLayout Grid.Row="3" HorizontalOptions="FillAndExpand" Orientation="Horizontal"> 
-            <Button x:Name="ButtonTraceHeartbeat" HorizontalOptions="CenterAndExpand" Text="Trace" Command="{Binding StartTrace}"/>
-            <Button x:Name="ButtonStopTrace" HorizontalOptions="CenterAndExpand" Text="Stop Trace" Command="{Binding StopTrace}"/>
-            <Button x:Name="ButtonClearResponseLabel" HorizontalOptions="CenterAndExpand" Text="Clear" Command="{Binding ClearData}"/>
-        </StackLayout>
-        <Grid Grid.Row="4">
+            Title="Device Communication"
+            BackgroundColor="DarkGray"
+            BarTextColor="GhostWhite"
+            SelectedTabColor="LightSteelBlue"
+            > 
+    <ContentPage Title="Trace" BackgroundColor="DarkGray">
+        <ScrollView>
+            <Grid Padding="5,5,5,5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Frame Grid.Row="0" CornerRadius="7" Margin="2,5,2,2" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Text="Trace Variable:" BackgroundColor="Transparent" TextColor="GhostWhite" VerticalTextAlignment="Center"/>
+                        <Entry Grid.Column="1" IsSpellCheckEnabled="False" Keyboard="Plain" BackgroundColor="LightGray" TextColor="DarkSlateGray" Text="{Binding TraceVariable}"/>
+                    </Grid>
+                </Frame>
+                <Frame Grid.Row="1" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" x:Name="PacketReadCount" Text="Window Size, in seconds:" BackgroundColor="Transparent" TextColor="GhostWhite" VerticalTextAlignment="Center"/>
+                        <Entry Grid.Column="1" x:Name="NumPacketsToRead" IsSpellCheckEnabled="False" Keyboard="Numeric" BackgroundColor="LightGray" TextColor="DarkSlateGray" Text="{Binding PlotWindowRange}"/>
+                    </Grid>
+                </Frame>
+                <Frame Grid.Row="2" CornerRadius="7" Margin="2,5,2,5" BackgroundColor="Transparent" Padding="5,5,5,5" HasShadow="False">
+                    <StackLayout HorizontalOptions="FillAndExpand" Orientation="Horizontal">
+                        <Button x:Name="ButtonTraceHeartbeat" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StartTrace}"/>
+                        <Button x:Name="ButtonStopTrace" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Stop Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StopTrace}"/>
+                        <Button x:Name="ButtonClearResponseLabel" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Clear" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding ClearPlot}"/>
+                    </StackLayout>
+                </Frame>
+                <Frame Grid.Row="3" CornerRadius="20" Padding="3,3,3,3" HasShadow="False" BackgroundColor="LightGray">
+                    <StackLayout >
+                        <oxy:PlotView Model="{Binding PlotModel}" VerticalOptions="FillAndExpand"  HorizontalOptions="FillAndExpand" 
+                                    ScaleX="{Binding PlotViewScaleX}" ScaleY="{Binding PlotViewScaleY}"/>
+                    </StackLayout>
+                </Frame> 
+            </Grid>
+        </ScrollView>
+    </ContentPage>
+    <ContentPage Title="Commands" BackgroundColor="DarkGray">
+        <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Label Grid.Row="0" Text="prntf Data:" FontAttributes="Bold"/>
-            <ScrollView Grid.Row="1" Orientation="Vertical" VerticalScrollBarVisibility="Always">
-                <Label Text="{Binding Response}" TextColor="SlateGray"/>
-            </ScrollView>
+
+            <Frame Grid.Row="0" CornerRadius="3" Margin="2,2,2,2" Padding="5,5,5,5" HasShadow="False" BackgroundColor="SteelBlue">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Text="Send Command:" BackgroundColor="Transparent" TextColor="GhostWhite" VerticalTextAlignment="Center"/>
+                    <Entry Grid.Column="1" x:Name="EntryCommand" IsSpellCheckEnabled="False" Keyboard="Plain" BackgroundColor="LightGray" TextColor="DarkSlateGray" Text="{Binding Command}"/>
+                    <Button Grid.Column="2" x:Name="ButtonSendCommand" Text="Send" TextColor="GhostWhite" Command="{Binding SendCommand}"/>
+                </Grid>
+            </Frame>
+            
+            <StackLayout Grid.Row="1" HorizontalOptions="End">
+                <Button Text="Clear Text" BackgroundColor="SteelBlue" TextColor="GhostWhite" Padding="10,10,10,10" Command="{Binding ClearText}"/>
+            </StackLayout>
+            
+            <Grid Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Text="prntf Data:" FontAttributes="Bold"/>
+                <ScrollView Grid.Row="1" Orientation="Vertical" VerticalScrollBarVisibility="Always">
+                    <Label Text="{Binding Response}" TextColor="WhiteSmoke"/>
+                </ScrollView>
+            </Grid>
         </Grid>
-        <StackLayout Grid.Row="5">
-            <oxy:PlotView Model="{Binding PlotModel}" VerticalOptions="FillAndExpand"  HorizontalOptions="FillAndExpand"/>
-        </StackLayout>
-    </Grid>
-</views:MvxContentPage>
+    </ContentPage>
+</views:MvxTabbedPage>

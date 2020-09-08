@@ -27,7 +27,7 @@ namespace BLE.Client.ViewModels
         private readonly IUserDialogs _userDialogs;
         private readonly ISettings _settings;
         private Guid _previousGuid;
-        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationTokenSource _cancellationTokenSource; 
 
         public Guid PreviousGuid
         {
@@ -40,8 +40,8 @@ namespace BLE.Client.ViewModels
                 RaisePropertyChanged(() => ConnectToPreviousCommand);
             }
         }
-
-        public MvxCommand RefreshCommand => new MvxCommand(() => TryStartScanning(true));
+         
+        public MvxCommand RefreshCommand => new MvxCommand(() => TryStartScanning(true), () => true);
         public MvxCommand<DeviceListItemViewModel> DisconnectCommand => new MvxCommand<DeviceListItemViewModel>(DisconnectDevice);
 
         public MvxCommand<DeviceListItemViewModel> ConnectDisposeCommand => new MvxCommand<DeviceListItemViewModel>(ConnectAndDisposeDevice);
@@ -80,11 +80,14 @@ namespace BLE.Client.ViewModels
         }
 
         public MvxCommand StopScanCommand => new MvxCommand(() =>
-        {
+        { 
             _cancellationTokenSource.Cancel();
             CleanupCancellationToken();
             RaisePropertyChanged(() => IsRefreshing);
-        }, () => _cancellationTokenSource != null);
+        }, () =>
+        {
+            return _cancellationTokenSource != null;
+        });
 
         readonly IPermissions _permissions;
 
@@ -100,8 +103,7 @@ namespace BLE.Client.ViewModels
             Adapter.ScanTimeoutElapsed += Adapter_ScanTimeoutElapsed;
             Adapter.DeviceDisconnected += OnDeviceDisconnected;
             Adapter.DeviceConnectionLost += OnDeviceConnectionLost;
-            //Adapter.DeviceConnected += (sender, e) => Adapter.DisconnectDeviceAsync(e.Device);
-
+            //Adapter.DeviceConnected += (sender, e) => Adapter.DisconnectDeviceAsync(e.Device); 
         }
 
         private Task GetPreviousGuidAsync()
@@ -408,6 +410,7 @@ namespace BLE.Client.ViewModels
         }
 
 
+        //public MvxCommand ConnectToPreviousCommand => new MvxCommand(() => { }, () => true);
         public MvxCommand ConnectToPreviousCommand => new MvxCommand(ConnectToPreviousDeviceAsync, CanConnectToPrevious);
 
         private async void ConnectToPreviousDeviceAsync()
@@ -459,7 +462,7 @@ namespace BLE.Client.ViewModels
 
         private bool CanConnectToPrevious()
         {
-            return PreviousGuid != default;
+            return PreviousGuid != default; 
         }
 
         private async void ConnectAndDisposeDevice(DeviceListItemViewModel item)

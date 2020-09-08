@@ -102,6 +102,26 @@ namespace BLE.Client.ViewModels
             }
         }
 
+        private double _scaleX, _scaleY;
+        public double PlotViewScaleX
+        {
+            get => _scaleX;
+            set
+            {
+                _scaleX = value;
+                RaisePropertyChanged();
+            }
+        }
+        public double PlotViewScaleY
+        {
+            get => _scaleY;
+            set
+            {
+                _scaleY = value;
+                RaisePropertyChanged(); 
+            }
+        }
+
         #endregion
 
         #region METHODS
@@ -109,7 +129,8 @@ namespace BLE.Client.ViewModels
         public MvxCommand StartTrace => new MvxCommand(StartTracing);
         public MvxCommand StopTrace => new MvxCommand(StopTracing);
         public MvxCommand SendCommand => new MvxCommand(() => SendCommandToBoard(Command));
-        public MvxCommand ClearData => new MvxCommand(ClearPrntfAndPlotData);
+        public MvxCommand ClearPlot => new MvxCommand(ClearPlotData);
+        public MvxCommand ClearText => new MvxCommand(ClearTextData);
 
         #endregion
 
@@ -304,12 +325,15 @@ namespace BLE.Client.ViewModels
         /// <summary>
         /// Clears the prntf data and wipes the plot.
         /// </summary>
-        private void ClearPrntfAndPlotData()
+        private void ClearPlotData()
         {
-            Response = string.Empty;
-
             PlotSeries.Points.Clear();
             PlotSeries.PlotModel.InvalidatePlot(true);
+        }
+
+        private void ClearTextData()
+        {
+            Response = string.Empty; 
         }
 
         /// <summary>
