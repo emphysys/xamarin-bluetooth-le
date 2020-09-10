@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Xamarin.Forms;
 
 namespace BLE.Client.ViewModels
 {
@@ -532,15 +533,19 @@ namespace BLE.Client.ViewModels
             // The following is platform-dependent (needs to change as well probably)
             IService service = null;
 
-            if (services.Count == 3)
+            if (Device.RuntimePlatform == Device.Android)
             {
-                // Android
+                // Android: pull service #3
                 service = services[2];
             }
-            else if (services.Count == 1)
+            else if (Device.RuntimePlatform == Device.iOS)
             {
-                // iOS
+                // iOS: pull service #1
                 service = services[0];
+            }
+            else
+            {
+                throw new PlatformNotSupportedException($"This app is not supported for {Device.RuntimePlatform}!");
             }
 
             var characteristics = await service.GetCharacteristicsAsync();
