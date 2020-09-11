@@ -45,6 +45,8 @@
                         <Button x:Name="ButtonTraceHeartbeat" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StartTrace}"/>
                         <Button x:Name="ButtonStopTrace" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Stop Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StopTrace}"/>
                         <Button x:Name="ButtonClearResponseLabel" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Clear" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding ClearPlot}"/>
+                        <Button x:Name="ButtonUploadData" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Send..." TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding SendDataToServer}"
+                                IsEnabled="{Binding EnableSendToServer}" IsVisible="{Binding EnableSendToServer}"/>
                     </StackLayout>
                 </Frame>
                 <Frame Grid.Row="3" CornerRadius="20" Padding="3,3,3,3" HasShadow="False" BackgroundColor="LightGray">

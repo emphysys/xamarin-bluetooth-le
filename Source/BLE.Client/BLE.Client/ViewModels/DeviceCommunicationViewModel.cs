@@ -123,6 +123,17 @@ namespace BLE.Client.ViewModels
             }
         }
 
+        private bool _EnableSendToServer;
+        public bool EnableSendToServer
+        {
+            get => _EnableSendToServer && PlotModel != null && PlotSeries != null && PlotSeries.Points.Count > 0;
+            set
+            {
+                _EnableSendToServer = value;
+                RaisePropertyChanged();
+            }
+        }
+
         #endregion
 
         #region METHODS
@@ -132,6 +143,7 @@ namespace BLE.Client.ViewModels
         public MvxCommand SendCommand => new MvxCommand(() => SendCommandToBoard(Command));
         public MvxCommand ClearPlot => new MvxCommand(ClearPlotData);
         public MvxCommand ClearText => new MvxCommand(ClearTextData);
+        public MvxCommand SendDataToServer => new MvxCommand(SendDataToAzureServer);
 
         #endregion
 
@@ -256,7 +268,9 @@ namespace BLE.Client.ViewModels
         /// Begins tracing the variable specified in local property *TraceVariable*.
         /// </summary>
         public async void StartTracing()
-        { 
+        {
+            EnableSendToServer = false;
+
             var traceCommand = $"trace {TraceVariable}";
             string[] cmds =
             { 
@@ -287,6 +301,8 @@ namespace BLE.Client.ViewModels
         /// </summary>
         public async void StopTracing()
         {
+            EnableSendToServer = true;
+
             var token = new CancellationToken();
 
             string[] cmds =
@@ -330,11 +346,17 @@ namespace BLE.Client.ViewModels
         {
             PlotSeries.Points.Clear();
             PlotSeries.PlotModel.InvalidatePlot(true);
+            RaisePropertyChanged(nameof(EnableSendToServer));
         }
 
         private void ClearTextData()
         {
             Response = string.Empty; 
+        }
+
+        private void SendDataToAzureServer()
+        {
+
         }
 
         /// <summary>
