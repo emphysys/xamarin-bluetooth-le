@@ -410,7 +410,6 @@ namespace BLE.Client.ViewModels
         }
 
 
-        //public MvxCommand ConnectToPreviousCommand => new MvxCommand(() => { }, () => true);
         public MvxCommand ConnectToPreviousCommand => new MvxCommand(ConnectToPreviousDeviceAsync, CanConnectToPrevious);
 
         private async void ConnectToPreviousDeviceAsync()

@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<views:MvxContentPage x:TypeArguments="SendDataToServerViewModel" 
+            xmlns="http://xamarin.com/schemas/2014/forms"
+            xmlns:c="clr-namespace:BLE.Client.Converters"
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
+            xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
+            x:Class="Xamarin.Forms.SendDataToServerPage"
+            Title="Offload ECG Data"
+            x:Name="SendDataPage"         
+            BackgroundColor="DarkGray">
+    <views:MvxContentPage.Resources>
+        <ResourceDictionary>
+            <c:ErrorMessageToErrorLabelVisibilityConverter x:Key="ErrorMessageLabelConverter"/>
+        </ResourceDictionary>
+    </views:MvxContentPage.Resources>
+    <Grid BackgroundColor="DarkGray" Padding="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Frame Grid.Row="0" CornerRadius="7" Margin="2,5,2,5" BackgroundColor="SteelBlue" Padding="5" HasShadow="False">
+            <StackLayout Orientation="Vertical">
+                <Label Text="Name of File:" BackgroundColor="Transparent" TextColor="GhostWhite" VerticalTextAlignment="Center"/>
+                <Entry Text="{Binding FileName}" IsSpellCheckEnabled="False" Keyboard="Plain" BackgroundColor="LightGray" TextColor="DarkSlateGray"/>
+            </StackLayout>
+        </Frame> 
+        <Button Grid.Row="1" Text="Send" HorizontalOptions="CenterAndExpand" Padding="20,3,20,3" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding SendDataCommand}"/>
+        <ActivityIndicator Grid.Row="2" IsRunning="{Binding IsUploading}"/>
+        <Button Grid.Row="3" Text="Exit" IsVisible="{Binding IsUploadComplete}" HorizontalOptions="CenterAndExpand" Padding="20,3,20,3" TextColor="GhostWhite" BackgroundColor="SteelBlue"  Command="{Binding ExitCommand}"/>
+        <Frame Grid.Row="4" CornerRadius="3" Margin="30,3,30,3" IsVisible="{Binding ErrorMessage, Converter={StaticResource ErrorMessageLabelConverter}}" BackgroundColor="LightGray" Padding="3" HasShadow="False">
+            <Label Text="{Binding ErrorMessage}" BackgroundColor="LightGray" TextColor="Red"/>
+        </Frame>
+    </Grid>
+</views:MvxContentPage>

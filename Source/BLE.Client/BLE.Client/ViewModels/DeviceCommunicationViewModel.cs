@@ -11,15 +11,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xamarin.Forms;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Shared.Protocol;
-using Microsoft.WindowsAzure.Storage.File;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Reflection;
-using System.IO;
-using Newtonsoft.Json.Linq;
+using MvvmCross;
+using MvvmCross.Navigation;
 
 namespace BLE.Client.ViewModels
 {
@@ -403,17 +396,10 @@ namespace BLE.Client.ViewModels
         #region AZURE
 
         /// <summary>
-        /// The connection string for the azure file database. Pulled from portal.azure.com in the emphysys1042appecgdata | Access keys page.
+        /// I don't know how to properly transmit data between pages but this works fine. Contains the formatted plot data in a \n-delimited 
+        /// CSV format. 
         /// </summary>
-        private const string AZURE_CONNECTIONSTR =
-                "DefaultEndpointsProtocol=https;AccountName=emphysys1042appecgdata;" +
-                "AccountKey={0};" +
-                "EndpointSuffix=core.windows.net";
-
-        /// <summary>
-        /// The name of the container into which to put the formatted data.
-        /// </summary>
-        private const string AZURE_CONTAINERNAME = "ecg-csv";
+        public static string PlotCSVData { get; private set; } = null;
 
         /// <summary>
         /// Sends the current plot data to an Azure server as a CSV file (reading over time). 
@@ -421,66 +407,10 @@ namespace BLE.Client.ViewModels
         private async void SendDataToAzureServer()
         {
             // Get the azure key from the embedded json
-            var azureKey = GetContainerKey();
-            var blobContainer = await GetOrCreateBlobContainer(azureKey);
-            var csvData = GetPlotPointsAsCSV();
-
-            var now = DateTime.Now;
-            var datetime = now.ToString(@"dd MMM yyyy HH:mm:ss");
-            var fileBlob = blobContainer.GetBlockBlobReference($"{datetime}.csv");
-            await fileBlob.UploadTextAsync(csvData);
-
-            Console.WriteLine("done"); 
+            PlotCSVData = GetPlotPointsAsCSV();
+            await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<SendDataToServerViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string>()));
         }
-
-        /// <summary>
-        /// The name of the key file.
-        /// </summary>
-        private const string KEYFILE_FILENAME = "azure_keys.json";
-
-        /// <summary>
-        /// The key for the azure container access key in the key file.
-        /// </summary>
-        private const string KEYFILE_CONTAINER_KEY = "container_key";
-
-        /// <summary>
-        /// To parse the azure container key from the embedded JSON key file. 
-        /// </summary>
-        /// <returns>The key.</returns>
-        private string GetContainerKey()
-        {
-            // As specified at https://docs.microsoft.com/en-us/xamarin/xamarin-forms/data-cloud/data/files?tabs=windows
-            var assembly = IntrospectionExtensions.GetTypeInfo(typeof(DeviceCommunicationViewModel)).Assembly;
-            var assemblyName = assembly.GetName().Name;
-            var resourcePath = $"{assemblyName}.{KEYFILE_FILENAME}";
-            var stream = assembly.GetManifestResourceStream(resourcePath);
-
-            string text;
-            using (var reader = new StreamReader(stream))
-            {
-                text = reader.ReadToEnd();
-            }
-
-            var obj = JObject.Parse(text);
-            return obj.Value<string>(KEYFILE_CONTAINER_KEY); 
-        }
-
-        /// <summary>
-        /// Either retrieves or creates the azure container to which the plot data will be delivered.
-        /// </summary>
-        /// <param name="key">The access key for the container.</param>
-        /// <returns>The container.</returns>
-        private async Task<CloudBlobContainer> GetOrCreateBlobContainer(string key)
-        {
-            var str = string.Format(AZURE_CONNECTIONSTR, key);
-            var client = CloudStorageAccount.Parse(str).CreateCloudBlobClient();
-            var container = client.GetContainerReference(AZURE_CONTAINERNAME);
-
-            await container.CreateIfNotExistsAsync();
-
-            return container;
-        } 
-
+         
         #endregion
 
         /// <summary>
