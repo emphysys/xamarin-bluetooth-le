@@ -11,11 +11,20 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using Microsoft.WindowsAzure.Storage.File;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using System.Reflection;
+using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace BLE.Client.ViewModels
 {
     public class DeviceCommunicationViewModel : BaseViewModel
-    { 
+    {
         /// <summary>
         /// The prompt that the board returns after a command. 
         /// </summary>
@@ -67,7 +76,7 @@ namespace BLE.Client.ViewModels
                 RaisePropertyChanged();
             }
         }
-         
+
         private string _PlotWindowRange;
         /// <summary>
         /// The range of the plot window, in seconds.
@@ -119,7 +128,7 @@ namespace BLE.Client.ViewModels
             set
             {
                 _scaleY = value;
-                RaisePropertyChanged(); 
+                RaisePropertyChanged();
             }
         }
 
@@ -172,7 +181,7 @@ namespace BLE.Client.ViewModels
         /// The RX and TX characteristics through which to communicate.
         /// </summary>
         private ICharacteristic rx, tx;
-        
+
         /// <summary>
         /// Any leftover bytes from previous packets. Null if there is no leftover data.
         /// </summary>
@@ -191,7 +200,7 @@ namespace BLE.Client.ViewModels
 
         public DeviceCommunicationViewModel(IAdapter adapter) : base(adapter)
         {
-            Command = "ls"; 
+            Command = "ls";
             PlotWindowRange = "5";
             TraceVariable = "/control/heartbeat_cnt";
             state = ResponseState.WaitForID;
@@ -199,7 +208,7 @@ namespace BLE.Client.ViewModels
             PlotModel = InitPlotModel();
 
             PlotModel.InvalidatePlot(true);
-            RaisePropertyChanged(nameof(PlotModel));
+            RaisePropertyChanged(nameof(PlotModel)); 
         }
 
 
@@ -239,11 +248,11 @@ namespace BLE.Client.ViewModels
                 CanTrackerInterpolatePoints = false,
             };
 
-            model.Series.Add(serie); 
+            model.Series.Add(serie);
 
             return model;
         }
-         
+
         /// <summary>
         /// Adds the given point to the plot.
         /// </summary>
@@ -251,13 +260,24 @@ namespace BLE.Client.ViewModels
         private void AddPointToGraph(DataPoint point)
         {
             var points = PlotSeries.Points;
-            
-            lock(PlotModel.SyncRoot)
+
+            lock (PlotModel.SyncRoot)
             {
                 points.Add(point);
             }
 
             PlotModel.InvalidatePlot(true);
+        }
+
+        /// <summary>
+        /// Formats the plot data as a CSV.
+        /// </summary>
+        /// <returns>A \n-delimited CSV.</returns>
+        private string GetPlotPointsAsCSV()
+        {
+            return PlotSeries.Points
+                .Select(dp => $"{DateTimeAxis.ToDateTime(dp.X):HH:mm:ss-fff}, {dp.Y}\n")
+                .Aggregate(string.Concat);
         }
 
         #endregion
@@ -273,8 +293,8 @@ namespace BLE.Client.ViewModels
 
             var traceCommand = $"trace {TraceVariable}";
             string[] cmds =
-            { 
-                traceCommand, 
+            {
+                traceCommand,
                 "trace_start"
             };
 
@@ -330,7 +350,7 @@ namespace BLE.Client.ViewModels
         /// </summary>
         /// <param name="command">The command to send, without a line break.</param>
         public async void SendCommandToBoard(string command)
-        { 
+        {
             // Write the command  
             var packets = GetCommandPackets(command);
             foreach (var packet in packets)
@@ -351,12 +371,7 @@ namespace BLE.Client.ViewModels
 
         private void ClearTextData()
         {
-            Response = string.Empty; 
-        }
-
-        private void SendDataToAzureServer()
-        {
-
+            Response = string.Empty;
         }
 
         /// <summary>
@@ -385,6 +400,89 @@ namespace BLE.Client.ViewModels
 
         #endregion
 
+        #region AZURE
+
+        /// <summary>
+        /// The connection string for the azure file database. Pulled from portal.azure.com in the emphysys1042appecgdata | Access keys page.
+        /// </summary>
+        private const string AZURE_CONNECTIONSTR =
+                "DefaultEndpointsProtocol=https;AccountName=emphysys1042appecgdata;" +
+                "AccountKey={0};" +
+                "EndpointSuffix=core.windows.net";
+
+        /// <summary>
+        /// The name of the container into which to put the formatted data.
+        /// </summary>
+        private const string AZURE_CONTAINERNAME = "ecg-csv";
+
+        /// <summary>
+        /// Sends the current plot data to an Azure server as a CSV file (reading over time). 
+        /// </summary>
+        private async void SendDataToAzureServer()
+        {
+            // Get the azure key from the embedded json
+            var azureKey = GetContainerKey();
+            var blobContainer = await GetOrCreateBlobContainer(azureKey);
+            var csvData = GetPlotPointsAsCSV();
+
+            var now = DateTime.Now;
+            var datetime = now.ToString(@"dd MMM yyyy HH:mm:ss");
+            var fileBlob = blobContainer.GetBlockBlobReference($"{datetime}.csv");
+            await fileBlob.UploadTextAsync(csvData);
+
+            Console.WriteLine("done"); 
+        }
+
+        /// <summary>
+        /// The name of the key file.
+        /// </summary>
+        private const string KEYFILE_FILENAME = "azure_keys.json";
+
+        /// <summary>
+        /// The key for the azure container access key in the key file.
+        /// </summary>
+        private const string KEYFILE_CONTAINER_KEY = "container_key";
+
+        /// <summary>
+        /// To parse the azure container key from the embedded JSON key file. 
+        /// </summary>
+        /// <returns>The key.</returns>
+        private string GetContainerKey()
+        {
+            // As specified at https://docs.microsoft.com/en-us/xamarin/xamarin-forms/data-cloud/data/files?tabs=windows
+            var assembly = IntrospectionExtensions.GetTypeInfo(typeof(DeviceCommunicationViewModel)).Assembly;
+            var assemblyName = assembly.GetName().Name;
+            var resourcePath = $"{assemblyName}.{KEYFILE_FILENAME}";
+            var stream = assembly.GetManifestResourceStream(resourcePath);
+
+            string text;
+            using (var reader = new StreamReader(stream))
+            {
+                text = reader.ReadToEnd();
+            }
+
+            var obj = JObject.Parse(text);
+            return obj.Value<string>(KEYFILE_CONTAINER_KEY); 
+        }
+
+        /// <summary>
+        /// Either retrieves or creates the azure container to which the plot data will be delivered.
+        /// </summary>
+        /// <param name="key">The access key for the container.</param>
+        /// <returns>The container.</returns>
+        private async Task<CloudBlobContainer> GetOrCreateBlobContainer(string key)
+        {
+            var str = string.Format(AZURE_CONNECTIONSTR, key);
+            var client = CloudStorageAccount.Parse(str).CreateCloudBlobClient();
+            var container = client.GetContainerReference(AZURE_CONTAINERNAME);
+
+            await container.CreateIfNotExistsAsync();
+
+            return container;
+        } 
+
+        #endregion
+
         /// <summary>
         /// Parses the updated TX value according to the structure of the packets that return from the board.
         /// </summary>
@@ -402,13 +500,13 @@ namespace BLE.Client.ViewModels
                 state = ResponseState.WaitForID;
             }
             else
-            { 
+            {
                 buffer = tx.Value;
             }
 
             byte packetID = 0;
             int packetLength = 0, packetIndex = 0;
-            byte[] packetData = new byte[0]; 
+            byte[] packetData = new byte[0];
             int finishedPacketLastByteIndex = -1;
 
             // Parse data bytewise to interpret what's going on (code adapted from EmpExplorer)
@@ -432,7 +530,7 @@ namespace BLE.Client.ViewModels
                             state = ResponseState.WaitForPacket;
                             packetData = new byte[packetLength];
                         }
-                         
+
                         break;
                     case ResponseState.WaitForLen1:
                         packetLength = data << 8;
@@ -451,7 +549,7 @@ namespace BLE.Client.ViewModels
                         }
 
                         break;
-                    case ResponseState.WaitForPacket: 
+                    case ResponseState.WaitForPacket:
                         packetData[packetIndex++] = data;
                         if (packetIndex == packetLength)
                         {
@@ -468,45 +566,45 @@ namespace BLE.Client.ViewModels
                                 case PACKETID_SCAN:
                                     // TODO
                                     break;
-                                case PACKETID_TRACE:  
+                                case PACKETID_TRACE:
                                     DataPoint dp;
                                     var datetime = DateTimeAxis.ToDouble(DateTime.Now);
                                     switch (packetLength)
                                     {
-                                        case 1:  
+                                        case 1:
                                             dp = new DataPoint(datetime, packetData[0]);
                                             break;
-                                        case 2: 
+                                        case 2:
                                             dp = new DataPoint(datetime, BitConverter.ToInt16(packetData, 0));
                                             break;
                                         case 4:
                                             dp = new DataPoint(datetime, BitConverter.ToInt32(packetData, 0));
                                             break;
-                                        case 8: 
+                                        case 8:
                                             dp = new DataPoint(datetime, BitConverter.ToInt64(packetData, 0));
                                             break;
                                         default:
                                             throw new NotImplementedException($"Packet length {packetLength} not implemented in TxValueUpdated()!");
                                     }
 
-                                    AddPointToGraph(dp); 
+                                    AddPointToGraph(dp);
                                     break;
                                 case PACKETID_PROXY:
                                     // TODO
                                     break;
                                 default:
                                     throw new FormatException($"Packet ID {packetID} is invalid or its data conversion is unimplemented in TxValueUpdated()!");
-                            } 
+                            }
                         }
                         break;
                     default:
                         break;
                 }
-            } 
+            }
 
             // If the current message spans multiple packets, store the remainder of the message for the next transmission
             if (finishedPacketLastByteIndex != buffer.Length - 1)
-            { 
+            {
                 if (unfinishedTxPacketBytes != null)
                 {
                     var newBuffer = new byte[buffer.Length - finishedPacketLastByteIndex - 1];
@@ -526,7 +624,7 @@ namespace BLE.Client.ViewModels
         }
 
         #region BASEVIEWMODEL PREPARATION
-         
+
         public override void Prepare(MvxBundle parameters)
         {
             base.Prepare(parameters);
@@ -542,6 +640,10 @@ namespace BLE.Client.ViewModels
             await InitConnection();
         }
 
+        private readonly Guid UUID_SERVICE = Guid.Parse("0000fe60-cc7a-482a-984a-7f2ed5b3e58f");
+        private readonly Guid UUID_RX = Guid.Parse("0000fe61-8e22-4541-9d4c-21edae82ed19");
+        private readonly Guid UUID_TX = Guid.Parse("0000fe62-8e22-4541-9d4c-21edae82ed19");
+
         /// <summary>
         /// Finds and stores references to the RX and TX characteristics attached to the current device.
         /// </summary>
@@ -552,28 +654,13 @@ namespace BLE.Client.ViewModels
             var device = GetDeviceFromBundle(parameters);
             var services = await device.GetServicesAsync();
 
-            // The following is platform-dependent (needs to change as well probably)
-            IService service = null;
-
-            if (Device.RuntimePlatform == Device.Android)
-            {
-                // Android: pull service #3
-                service = services[2];
-            }
-            else if (Device.RuntimePlatform == Device.iOS)
-            {
-                // iOS: pull service #1
-                service = services[0];
-            }
-            else
-            {
-                throw new PlatformNotSupportedException($"This app is not supported for {Device.RuntimePlatform}!");
-            }
+            // Find the service and characteristics by UUID
+            IService service = services.First(s => s.Id.Equals(UUID_SERVICE));
 
             var characteristics = await service.GetCharacteristicsAsync();
 
-            // RX first, TX second
-            rx = characteristics[0]; tx = characteristics[1];
+            rx = characteristics.First(c => c.Id.Equals(UUID_RX));
+            tx = characteristics.First(c => c.Id.Equals(UUID_TX));
         }
 
         /// <summary>
@@ -594,16 +681,16 @@ namespace BLE.Client.ViewModels
                 "set /sys/prntf_packet_enable 1",
                 "set /trace/packet_len 4",
                 "trace_stop",
-                "trace_clear", 
+                "trace_clear",
             };
 
             foreach (var cmd in cmds)
             {
                 await Task.Run(() => SendCommandToBoard(cmd));
                 await Task.Delay(500);
-            } 
+            }
         }
 
-#endregion
+        #endregion
     }
 }

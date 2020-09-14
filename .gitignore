@@ -206,3 +206,6 @@ FakesAssemblies/
 /.build/PluginNugetTest/testbuild
 .build/tools/
 tools/
+
+
+azure_keys.json
