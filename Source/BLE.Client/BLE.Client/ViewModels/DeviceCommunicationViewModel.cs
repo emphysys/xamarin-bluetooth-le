@@ -145,7 +145,7 @@ namespace BLE.Client.ViewModels
         // These are referenced as button commands in the xaml
         public MvxCommand StartTrace => new MvxCommand(StartTracing);
         public MvxCommand StopTrace => new MvxCommand(StopTracing);
-        public MvxCommand SendCommand => new MvxCommand(() => SendCommandToBoard(Command));
+        public MvxCommand SendCommand => new MvxCommand(async() => await SendCommandToBoard(Command));
         public MvxCommand ClearPlot => new MvxCommand(ClearPlotData);
         public MvxCommand ClearText => new MvxCommand(ClearTextData);
         public MvxCommand SendDataToServer => new MvxCommand(SendDataToAzureServer);
@@ -325,10 +325,7 @@ namespace BLE.Client.ViewModels
             cleanPlotTokenSource = new CancellationTokenSource();
 
             var thread = new Thread(CleanPlotThreadEntry);
-            thread.Start(cleanPlotTokenSource.Token);
-
-            // vvv TODO: for debugging, remove later vvv
-            new Thread(() => { Thread.Sleep(TimeSpan.FromMinutes(10)); InvokeOnMainThread(StopTracing); }).Start();
+            thread.Start(cleanPlotTokenSource.Token); 
         }
 
         /// <summary>
