@@ -1,5 +1,14 @@
-#IMPORTANT:
+# IMPORTANT:
 This app requires a Microsoft Azure access key. That key is *not* included in this repository for security purposes. It may be found on the eng drive at: \\emphy-eng\CUST1042\SW_Design\iPhone APP\Azure Keys. See the README in that directory for instructions.
+
+## Bringup Steps from a Fresh Clone: 
+
+1. Copy the access key file from \\emphy-eng\CUST1042\SW_Design\iPhone APP\Azure Keys\azure_keys.json to *project root*\Source\BLE.Client\BLE.Client\azure_keys.json
+2. Open the VS solution file (*project root*\Source\BLE.sln) and set the build project to BLE.Client.iOS
+3. Open the BLE.Client.iOS project properties, go to iOS Bundle Signing, and select Automatic Provisioning. From the Team dropdown, select your provisioning identity (if you have not yet provisioned, see \\emphy-eng\CUST1042\SW_Design\iPhone APP\iPhone Provisioning Instructions.docx)
+4. Click the 'Pair to Mac' button on the toolbar and provide SSH credentials for your mac
+5. Build the project. The build will fail if the Mac is not connected or if the azure keys file is not in the correct location.
+6. Select your phone from the run configuration dropdown menu. Ensure that the phone is connected to the mac via wire (a slower wireless deploy and debug process is possible; google it for instructions)
 
 # <img src="icon_small.png" width="71" height="71"/> Bluetooth LE plugin for Xamarin ![Build Status](https://app.bitrise.io/app/3fe54d0a5f43c2bf/status.svg?token=i9LUY4rIecZWd_3j7hwXgw) 
 
