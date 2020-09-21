@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using MvvmCross;
 using MvvmCross.Navigation;
+using System.Runtime.InteropServices;
+using Xamarin.Forms.Internals;
+using System.Diagnostics;
 
 namespace BLE.Client.ViewModels
 {
@@ -201,12 +204,16 @@ namespace BLE.Client.ViewModels
             PlotModel = InitPlotModel();
 
             PlotModel.InvalidatePlot(true);
-            RaisePropertyChanged(nameof(PlotModel)); 
+            RaisePropertyChanged(nameof(PlotModel));
         }
 
 
         #region PLOT STUFF
 
+        /// <summary>
+        /// Initializes the plot legend and axes.
+        /// </summary>
+        /// <returns></returns>
         private PlotModel InitPlotModel()
         {
             var model = new PlotModel()
@@ -266,16 +273,23 @@ namespace BLE.Client.ViewModels
         /// Formats the plot data as a CSV.
         /// </summary>
         /// <returns>A \n-delimited CSV.</returns>
-        private string GetPlotPointsAsCSV()
+        private static string GetPlotPointsAsCSV()
         {
-            return PlotSeries.Points
+            var builder = new StringBuilder((int)CSVDataSizeInBytes);
+            plotPoints
                 .Select(dp => $"{DateTimeAxis.ToDateTime(dp.X):HH:mm:ss-fff}, {dp.Y}\n")
-                .Aggregate(string.Concat);
+                .ForEach(s => builder.Append(s));
+            return builder.ToString();
         }
 
         #endregion
 
         #region COMMANDS AND TRACING
+
+        /// <summary>
+        /// The cancellation token for the async plot clean function. Cancelled when tracing ends. 
+        /// </summary>
+        private CancellationTokenSource cleanPlotTokenSource;
 
         /// <summary>
         /// Begins tracing the variable specified in local property *TraceVariable*.
@@ -307,6 +321,73 @@ namespace BLE.Client.ViewModels
                     await rx.WriteAsync(packet, token);
                 }
             }
+
+            cleanPlotTokenSource = new CancellationTokenSource();
+
+            var thread = new Thread(CleanPlotThreadEntry);
+            thread.Start(cleanPlotTokenSource.Token);
+
+            // vvv TODO: for debugging, remove later vvv
+            new Thread(() => { Thread.Sleep(TimeSpan.FromMinutes(10)); InvokeOnMainThread(StopTracing); }).Start();
+        }
+
+        /// <summary>
+        /// A collection of old data points that have been cleaned from the plot to prevent the library from seizing over having too much data. 
+        /// After tracing ends, this will hold all of the data points from the trace.
+        /// </summary>
+        private static List<DataPoint> plotPoints;
+
+        /// <summary>
+        /// The number of data points that the plot data structure can hold before old data should be cleaned out. 
+        /// </summary>
+        private const int CLEAN_PLOT_CAPACITY = 4096;
+
+        /// <summary>
+        /// The number of old data points to retain in the plot after a clean. 
+        /// </summary>
+        private const int CLEAN_PLOT_KEEP = 1024;
+
+        /// <summary>
+        /// The number of old data points to clean from the plot data structure.
+        /// </summary>
+        private const int CLEAN_PLOT_COPY = CLEAN_PLOT_CAPACITY - CLEAN_PLOT_KEEP;
+
+        /// <summary>
+        /// The number of ms to wait after a plot clean check.
+        /// </summary>
+        private const int CLEAN_PLOT_SLEEP_DURATION_MS = 1000;
+
+        /// <summary>
+        /// Asyncronous. Periodically cleans the plot data structure to prevent the library from freezing the app due to trying to plot too much data. 
+        /// </summary>
+        /// <param name="cancellationTokenAsObject">The cancellation token to consider when quitting this function</param>
+        public void CleanPlotThreadEntry(object cancellationTokenAsObject)
+        {
+            var token = (CancellationToken)cancellationTokenAsObject;
+            plotPoints = new List<DataPoint>();
+
+            while (!token.IsCancellationRequested)
+            {
+                if (PlotSeries.Points.Count > CLEAN_PLOT_CAPACITY)
+                { 
+                    // Must lock the entire calculation because the main thread may try to add points during the copy calculations
+                    lock (PlotModel.SyncRoot)
+                    {
+                        // Copy the first set of points to persistent storage
+                        var overflow = PlotSeries.Points.Count - CLEAN_PLOT_CAPACITY;
+                        var pointsToTake = PlotSeries.Points.Take(CLEAN_PLOT_COPY + overflow);
+                        plotPoints.AddRange(pointsToTake);
+
+                        var newPlotPoints = PlotSeries.Points.Skip(CLEAN_PLOT_COPY + overflow).ToList();
+                        PlotSeries.Points.Clear();
+                        PlotSeries.Points.AddRange(newPlotPoints);
+                    }
+
+                    Console.WriteLine("Cleaned plot");
+                }
+
+                Thread.Sleep(CLEAN_PLOT_SLEEP_DURATION_MS);
+            }
         }
 
         /// <summary>
@@ -316,7 +397,7 @@ namespace BLE.Client.ViewModels
         {
             EnableSendToServer = true;
 
-            var token = new CancellationToken();
+            cleanPlotTokenSource.Cancel();
 
             string[] cmds =
             {
@@ -328,6 +409,7 @@ namespace BLE.Client.ViewModels
             PlotModel.TitleColor = OxyColors.DarkRed;
             PlotSeries.Color = OxyColors.DarkRed;
 
+            var token = new CancellationToken();
             foreach (var cmd in cmds)
             {
                 var packets = GetCommandPackets(cmd);
@@ -336,29 +418,37 @@ namespace BLE.Client.ViewModels
                     await rx.WriteAsync(packet, token);
                 }
             }
+
+            // Copy any remaining points in the plot
+            plotPoints.AddRange(PlotSeries.Points); 
         }
 
         /// <summary>
         /// Sends the given command to the board as an array of ASCII bytes.
         /// </summary>
         /// <param name="command">The command to send, without a line break.</param>
-        public async void SendCommandToBoard(string command)
+        public async Task SendCommandToBoard(string command)
         {
+            Console.WriteLine("<== Command: {0}", command);
             // Write the command  
             var packets = GetCommandPackets(command);
             foreach (var packet in packets)
             {
                 await rx.WriteAsync(packet, new CancellationToken());
             }
+
+            Console.WriteLine("<== Successfully wrote {0}", command);
         }
 
         /// <summary>
-        /// Clears the prntf data and wipes the plot.
+        /// Stops tracing and clears all data from the plot.
         /// </summary>
         private void ClearPlotData()
         {
+            StopTracing();
             PlotSeries.Points.Clear();
             PlotSeries.PlotModel.InvalidatePlot(true);
+            plotPoints.Clear();
             RaisePropertyChanged(nameof(EnableSendToServer));
         }
 
@@ -394,23 +484,24 @@ namespace BLE.Client.ViewModels
         #endregion
 
         #region AZURE
-
+        
         /// <summary>
         /// I don't know how to properly transmit data between pages but this works fine. Contains the formatted plot data in a \n-delimited 
         /// CSV format. 
         /// </summary>
-        public static string PlotCSVData { get; private set; } = null;
+        public static string PlotCSVData => GetPlotPointsAsCSV();
+
+        public static long CSVDataSizeInBytes { get; private set; }
 
         /// <summary>
-        /// Sends the current plot data to an Azure server as a CSV file (reading over time). 
+        /// Opens the data delivery screen.
         /// </summary>
         private async void SendDataToAzureServer()
         {
-            // Get the azure key from the embedded json
-            PlotCSVData = GetPlotPointsAsCSV();
+            CSVDataSizeInBytes = Marshal.SizeOf(typeof(DataPoint)) * plotPoints.Count; 
             await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<SendDataToServerViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string>()));
         }
-         
+
         #endregion
 
         /// <summary>
@@ -557,7 +648,7 @@ namespace BLE.Client.ViewModels
 
         public override void Prepare(MvxBundle parameters)
         {
-            base.Prepare(parameters);
+            base.Prepare(parameters); Console.WriteLine("Prepare");
 
             // Deal with async stuff
             PrepareAsync(parameters);
@@ -565,8 +656,13 @@ namespace BLE.Client.ViewModels
 
         private async void PrepareAsync(MvxBundle parameters)
         {
+            Console.WriteLine("PrepareAsync");
+
+            Console.WriteLine("Findandstore");
             await FindAndStoreCharacteristics(parameters);
+            Console.WriteLine("BeginUpdates");
             await BeginRxTxUpdates();
+            Console.WriteLine("InitConnection");
             await InitConnection();
         }
 
@@ -616,8 +712,7 @@ namespace BLE.Client.ViewModels
 
             foreach (var cmd in cmds)
             {
-                await Task.Run(() => SendCommandToBoard(cmd));
-                await Task.Delay(500);
+                await SendCommandToBoard(cmd);
             }
         }
 

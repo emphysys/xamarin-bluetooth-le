@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6211" systemVersion="14A298i" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="222">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6204"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+    </dependencies>
+    <scenes>
+        <scene sceneID="221">
+            <objects>
+                <viewController id="222" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="219"/>
+                        <viewControllerLayoutGuide type="bottom" id="220"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="223">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="3066" translatesAutoresizingMaskIntoConstraints="NO" image="SplashLogoImage">
+                                <rect key="frame" x="75" y="60" width="225" height="297"/>
+                                <constraints>
+                                    <constraint id="3910" firstAttribute="width" secondItem="3066" secondAttribute="height" multiplier="220:291"/>
+                                    <constraint id="4378" firstAttribute="height" constant="297"/>
+                                </constraints>
+                            </imageView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="4591" translatesAutoresizingMaskIntoConstraints="NO" image="SplashLogoText">
+                                <rect key="frame" x="67.5" y="484" width="240" height="128"/>
+                                <constraints>
+                                    <constraint id="4618" firstAttribute="height" constant="128"/>
+                                    <constraint id="4645" firstAttribute="width" secondItem="4591" secondAttribute="height" multiplier="15:8"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" colorSpace="calibratedRGB" red="0.8901960784313725" green="0.8901960784313725" blue="0.8901960784313725" alpha="1"/>
+                        <constraints>
+                            <constraint id="4371" firstItem="3066" firstAttribute="centerX" secondItem="223" secondAttribute="centerX"/>
+                            <constraint id="4374" firstItem="3066" firstAttribute="top" secondItem="219" secondAttribute="bottom" constant="40"/>
+                            <constraint id="4648" firstItem="220" firstAttribute="top" secondItem="4591" secondAttribute="bottom" constant="55"/>
+                            <constraint id="4680" firstItem="4591" firstAttribute="centerX" secondItem="223" secondAttribute="centerX"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="224" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="11" y="-405"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="SplashLogoImage" width="272" height="444.5"/>
+        <image name="SplashLogoText" width="940" height="267"/>
+    </resources>
+</document>

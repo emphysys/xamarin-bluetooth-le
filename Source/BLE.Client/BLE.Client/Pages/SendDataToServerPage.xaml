@@ -12,6 +12,7 @@
     <views:MvxContentPage.Resources>
         <ResourceDictionary>
             <c:ErrorMessageToErrorLabelVisibilityConverter x:Key="ErrorMessageLabelConverter"/>
+            <c:InverseBooleanValueConverter x:Key="InverseBooleanConverter"/>
         </ResourceDictionary>
     </views:MvxContentPage.Resources>
     <Grid BackgroundColor="DarkGray" Padding="5">
@@ -24,11 +25,12 @@
         </Grid.RowDefinitions>
         <Frame Grid.Row="0" CornerRadius="7" Margin="2,5,2,5" BackgroundColor="SteelBlue" Padding="5" HasShadow="False">
             <StackLayout Orientation="Vertical">
-                <Label Text="Name of File:" BackgroundColor="Transparent" TextColor="GhostWhite" VerticalTextAlignment="Center"/>
+                <Label Text="{Binding FileSize, StringFormat='Name of File: (size: {0:F3}KB)'}"  BackgroundColor="Transparent" TextColor="GhostWhite" VerticalTextAlignment="Center"/>
                 <Entry Text="{Binding FileName}" IsSpellCheckEnabled="False" Keyboard="Plain" BackgroundColor="LightGray" TextColor="DarkSlateGray"/>
             </StackLayout>
         </Frame> 
-        <Button Grid.Row="1" Text="Send" HorizontalOptions="CenterAndExpand" Padding="20,3,20,3" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding SendDataCommand}"/>
+        <Button Grid.Row="1" Text="{Binding SendButtonText}" HorizontalOptions="CenterAndExpand" Padding="20,3,20,3" TextColor="GhostWhite" BackgroundColor="SteelBlue" 
+                Command="{Binding SendDataCommand}"/>
         <ActivityIndicator Grid.Row="2" IsRunning="{Binding IsUploading}"/>
         <Button Grid.Row="3" Text="Exit" IsVisible="{Binding IsUploadComplete}" HorizontalOptions="CenterAndExpand" Padding="20,3,20,3" TextColor="GhostWhite" BackgroundColor="SteelBlue"  Command="{Binding ExitCommand}"/>
         <Frame Grid.Row="4" CornerRadius="3" Margin="30,3,30,3" IsVisible="{Binding ErrorMessage, Converter={StaticResource ErrorMessageLabelConverter}}" BackgroundColor="LightGray" Padding="3" HasShadow="False">

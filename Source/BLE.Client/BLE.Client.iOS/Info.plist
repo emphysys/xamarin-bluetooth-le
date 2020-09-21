@@ -35,6 +35,8 @@
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Needed in order to use the Bluetooth subsystem</string>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>SplashScreen</string>
+	<key>XSAppIconAssets</key>
+	<string>Assets.xcassets/AppIcons.appiconset</string>
 </dict>
 </plist>

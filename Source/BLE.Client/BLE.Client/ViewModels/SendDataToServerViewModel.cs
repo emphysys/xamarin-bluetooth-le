@@ -66,6 +66,28 @@ namespace Xamarin.Forms
             }
         }
 
+        private string _SendButtonText;
+        public string SendButtonText
+        {
+            get => _SendButtonText;
+            set
+            {
+                _SendButtonText = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private double _FileSize;
+        public double FileSize
+        {
+            get => _FileSize;
+            set
+            {
+                _FileSize = value;
+                RaisePropertyChanged();
+            }
+        }
+
         #endregion
 
         #region COMMANDS
@@ -82,7 +104,12 @@ namespace Xamarin.Forms
         {
             // Default the file name to the current datetime
             var now = DateTime.Now;
-            FileName = now.ToString(@"dd MMM yyyy HH:mm:ss");
+            FileName = now.ToString("dd MMM yyyy HH:mm:ss");
+            FileName = "DEBUG: Data Integrity (1 minute) ";
+
+            FileSize = DeviceCommunicationViewModel.CSVDataSizeInBytes / 1042d;
+
+            SendButtonText = "Send";
         }
 
         /// <summary>
@@ -109,13 +136,13 @@ namespace Xamarin.Forms
 
                 IsUploading = false;
                 IsUploadComplete = true;
+                SendButtonText = "Done!"; 
             }
             catch (Exception e)  // <-- This error reporting should be further fleshed out per-type
             { 
                 IsUploading = false;
                 ErrorMessage = e.Message;
-            }
-            
+            } 
         }
 
 
