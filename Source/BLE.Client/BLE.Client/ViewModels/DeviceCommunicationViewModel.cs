@@ -329,8 +329,7 @@ namespace BLE.Client.ViewModels
             thread.Start(cleanPlotTokenSource.Token);
 
             // Record the current time as the 0th trace packet time 
-            previousTracePacketTime = DateTimeAxis.ToDouble(DateTime.Now);
-            traceStartTime = previousTracePacketTime;
+            traceTime = DateTime.Now;
         }
 
         /// <summary>
@@ -507,13 +506,10 @@ namespace BLE.Client.ViewModels
 
         #endregion
 
-        private double previousTracePacketTime;
-
-        private double traceStartTime;
-
-        private int packetCount;
+        private DateTime traceTime;  
 
         private const float CONTROL_LOOP_SECONDS = 1 / 2000f;
+        private const float CONTROL_LOOP_DIV = 10;
 
         /// <summary>
         /// Parses the updated TX value according to the structure of the packets that return from the board.
@@ -602,40 +598,17 @@ namespace BLE.Client.ViewModels
                                     if ((numDataPointsInPacket % 1) != 0)
                                     {
                                         throw new ArgumentException($"Packet length of {packetLength} is not divisible by data point size {dataPointLength}!");
-                                    }
-
-                                    var datetime = DateTimeAxis.ToDouble(DateTime.Now); 
-                                    var diff = datetime - previousTracePacketTime;
-                                    previousTracePacketTime = datetime;
-                                    var delta = diff / numDataPointsInPacket;  // <-- assume 10 packets for now TODO
+                                    } 
 
                                     for (int j = 0; j < numDataPointsInPacket; j++)
                                     { 
-                                        var dataPoint = BitConverter.ToSingle(packetData, j * dataPointLength);
-                                        var time = datetime + (delta * j);
+                                        var dataPoint = BitConverter.ToInt32(packetData, j * dataPointLength);
+                                        //var dataPoint = BitConverter.ToSingle(packetData, j * dataPointLength); 
+                                        traceTime += TimeSpan.FromSeconds(CONTROL_LOOP_SECONDS * CONTROL_LOOP_DIV); 
 
-                                        AddPointToGraph(new DataPoint(time, dataPoint));
-                                    }
+                                        AddPointToGraph(new DataPoint(DateTimeAxis.ToDouble(traceTime), dataPoint));
+                                    } 
 
-                                    //switch (packetLength) 
-                                    //{
-                                    //    case 1:
-                                    //        dp = new DataPoint(datetime, packetData[0]);
-                                    //        break;
-                                    //    case 2:
-                                    //        dp = new DataPoint(datetime, BitConverter.ToInt16(packetData, 0));
-                                    //        break;
-                                    //    case 4:
-                                    //        dp = new DataPoint(datetime, BitConverter.ToInt32(packetData, 0));
-                                    //        break;
-                                    //    case 8:
-                                    //        dp = new DataPoint(datetime, BitConverter.ToInt64(packetData, 0));
-                                    //        break;
-                                    //    default:
-                                    //        throw new NotImplementedException($"Packet length {packetLength} not implemented in TxValueUpdated()!");
-                                    //}
-
-                                    //AddPointToGraph(dp);
                                     break;
                                 case PACKETID_PACKING:
                                     var dfasd = Thread.CurrentThread.ManagedThreadId;

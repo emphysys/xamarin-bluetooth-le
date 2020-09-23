@@ -105,7 +105,7 @@ namespace Xamarin.Forms
             // Default the file name to the current datetime
             var now = DateTime.Now;
             FileName = now.ToString("dd MMM yyyy HH:mm:ss");
-            FileName = "DEBUG: Data Integrity (1 minute) ";
+            //FileName = "DEBUG: Data Integrity (1 minute) ";
 
             FileSize = DeviceCommunicationViewModel.CSVDataSizeInBytes / 1042d;
 
