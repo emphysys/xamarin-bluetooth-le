@@ -42,10 +42,10 @@
                 </Frame>
                 <Frame Grid.Row="2" CornerRadius="7" Margin="2,5,2,5" BackgroundColor="Transparent" Padding="5,5,5,5" HasShadow="False">
                     <StackLayout HorizontalOptions="FillAndExpand" Orientation="Horizontal">
-                        <Button x:Name="ButtonTraceHeartbeat" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StartTrace}"/>
-                        <Button x:Name="ButtonStopTrace" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Stop Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StopTrace}"/>
-                        <Button x:Name="ButtonClearResponseLabel" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Clear" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding ClearPlot}"/>
-                        <Button x:Name="ButtonUploadData" Padding="20,3,20,3" HorizontalOptions="CenterAndExpand" Text="Send..." TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding SendDataToServer}"
+                        <Button x:Name="ButtonTraceHeartbeat" Padding="20,3,20,3" HorizontalOptions="Center"  Text="Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StartTrace}"/>
+                        <Button x:Name="ButtonStopTrace" Padding="20,3,20,3" HorizontalOptions="Center" Text="Stop Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StopTrace}"/>
+                        <Button x:Name="ButtonClearResponseLabel" Padding="20,3,20,3" HorizontalOptions="Center" Text="Clear" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding ClearPlot}"/>
+                        <Button x:Name="ButtonUploadData" Padding="20,3,20,3" HorizontalOptions="Center" Text="Send..." TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding SendDataToServer}"
                                 IsEnabled="{Binding EnableSendToServer}" IsVisible="{Binding EnableSendToServer}"/>
                     </StackLayout>
                 </Frame>

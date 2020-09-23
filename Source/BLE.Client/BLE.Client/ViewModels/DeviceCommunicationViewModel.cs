@@ -161,6 +161,7 @@ namespace BLE.Client.ViewModels
         private const byte PACKETID_SCAN = 0xbb;
         private const byte PACKETID_TRACE = 0xcc;
         private const byte PACKETID_PROXY = 0xdd;
+        private const byte PACKETID_PACKING = 0xee;
 
         /// <summary>
         /// The state of packet parsing.
@@ -327,8 +328,8 @@ namespace BLE.Client.ViewModels
             var thread = new Thread(CleanPlotThreadEntry);
             thread.Start(cleanPlotTokenSource.Token);
 
-            // vvv TODO: for debugging, remove later vvv
-            new Thread(() => { Thread.Sleep(TimeSpan.FromMinutes(10)); InvokeOnMainThread(StopTracing); }).Start();
+            // Record the current time as the 0th trace packet time 
+            previousTracePacketTime = DateTimeAxis.ToDouble(DateTime.Now);
         }
 
         /// <summary>
@@ -340,7 +341,7 @@ namespace BLE.Client.ViewModels
         /// <summary>
         /// The number of data points that the plot data structure can hold before old data should be cleaned out. 
         /// </summary>
-        private const int CLEAN_PLOT_CAPACITY = 4096;
+        private const int CLEAN_PLOT_CAPACITY = 8192;
 
         /// <summary>
         /// The number of old data points to retain in the plot after a clean. 
@@ -430,6 +431,7 @@ namespace BLE.Client.ViewModels
         public async Task SendCommandToBoard(string command)
         {
             Console.WriteLine("<== Command: {0}", command);
+
             // Write the command  
             var packets = GetCommandPackets(command);
             foreach (var packet in packets)
@@ -504,6 +506,8 @@ namespace BLE.Client.ViewModels
 
         #endregion
 
+        private double previousTracePacketTime;
+
         /// <summary>
         /// Parses the updated TX value according to the structure of the packets that return from the board.
         /// </summary>
@@ -537,7 +541,8 @@ namespace BLE.Client.ViewModels
                 switch (state)
                 {
                     case ResponseState.WaitForID:
-                        if (data == PACKETID_PRINTF || data == PACKETID_SCAN || data == PACKETID_TRACE || data == PACKETID_PROXY)
+                        if (data == PACKETID_PRINTF || data == PACKETID_SCAN || data == PACKETID_TRACE 
+                            || data == PACKETID_PROXY || data == PACKETID_PACKING)
                         {
                             packetID = data;
                             state = ResponseState.WaitForLen1;
@@ -583,35 +588,51 @@ namespace BLE.Client.ViewModels
                                 case PACKETID_PRINTF:
                                     var str = Encoding.ASCII.GetString(packetData).Replace(CONSOLE_PROMPT, "");
                                     Response += str; Console.Write(str);
-                                    break;
-                                case PACKETID_SCAN:
-                                    // TODO
-                                    break;
-                                case PACKETID_TRACE:
-                                    DataPoint dp;
-                                    var datetime = DateTimeAxis.ToDouble(DateTime.Now);
-                                    switch (packetLength)
+                                    break; 
+                                case PACKETID_TRACE: 
+                                    var dataPointLength = 4;
+                                    var numDataPointsInPacket = (double)packetLength / dataPointLength;
+                                    if ((numDataPointsInPacket % 1) != 0)
                                     {
-                                        case 1:
-                                            dp = new DataPoint(datetime, packetData[0]);
-                                            break;
-                                        case 2:
-                                            dp = new DataPoint(datetime, BitConverter.ToInt16(packetData, 0));
-                                            break;
-                                        case 4:
-                                            dp = new DataPoint(datetime, BitConverter.ToInt32(packetData, 0));
-                                            break;
-                                        case 8:
-                                            dp = new DataPoint(datetime, BitConverter.ToInt64(packetData, 0));
-                                            break;
-                                        default:
-                                            throw new NotImplementedException($"Packet length {packetLength} not implemented in TxValueUpdated()!");
+                                        throw new ArgumentException($"Packet length of {packetLength} is not divisible by data point size {dataPointLength}!");
                                     }
 
-                                    AddPointToGraph(dp);
+                                    var datetime = DateTimeAxis.ToDouble(DateTime.Now); 
+                                    var diff = datetime - previousTracePacketTime;
+                                    previousTracePacketTime = datetime;
+                                    var delta = diff / numDataPointsInPacket;  // <-- assume 10 packets for now TODO
+
+                                    for (int j = 0; j < numDataPointsInPacket; j++)
+                                    {
+                                        var dataPoint = BitConverter.ToInt32(packetData, j * dataPointLength);
+                                        var time = datetime + (delta * j);
+
+                                        AddPointToGraph(new DataPoint(time, dataPoint));
+                                    }
+
+                                    //switch (packetLength) 
+                                    //{
+                                    //    case 1:
+                                    //        dp = new DataPoint(datetime, packetData[0]);
+                                    //        break;
+                                    //    case 2:
+                                    //        dp = new DataPoint(datetime, BitConverter.ToInt16(packetData, 0));
+                                    //        break;
+                                    //    case 4:
+                                    //        dp = new DataPoint(datetime, BitConverter.ToInt32(packetData, 0));
+                                    //        break;
+                                    //    case 8:
+                                    //        dp = new DataPoint(datetime, BitConverter.ToInt64(packetData, 0));
+                                    //        break;
+                                    //    default:
+                                    //        throw new NotImplementedException($"Packet length {packetLength} not implemented in TxValueUpdated()!");
+                                    //}
+
+                                    //AddPointToGraph(dp);
                                     break;
-                                case PACKETID_PROXY:
-                                    // TODO
+                                case PACKETID_PACKING:
+                                    var dfasd = Thread.CurrentThread.ManagedThreadId;
+                                    Device.BeginInvokeOnMainThread(() => SendCommandToBoard("set /trace/wait_for_packing 0"));
                                     break;
                                 default:
                                     throw new FormatException($"Packet ID {packetID} is invalid or its data conversion is unimplemented in TxValueUpdated()!");
@@ -708,6 +729,7 @@ namespace BLE.Client.ViewModels
                 "set /trace/packet_len 4",
                 "trace_stop",
                 "trace_clear",
+                "set /trace/div 10"
             };
 
             foreach (var cmd in cmds)
