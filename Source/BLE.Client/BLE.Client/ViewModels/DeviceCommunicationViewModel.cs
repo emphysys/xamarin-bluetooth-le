@@ -302,6 +302,7 @@ namespace BLE.Client.ViewModels
 
             _PlotModel.Title = title;
             (_PlotModel.Series[0] as LineSeries).Color = OxyColors.Black;
+            _PlotModel.TitleColor = OxyColors.Black;
 
             exporter.Export(_PlotModel, stream); 
         }

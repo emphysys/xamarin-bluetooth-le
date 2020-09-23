@@ -2,17 +2,13 @@
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using MvvmCross.Commands;
-using MvvmCross.ViewModels;
 using Newtonsoft.Json.Linq;
 using Plugin.BLE.Abstractions.Contracts;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using Xamarin.Essentials;
 
 namespace Xamarin.Forms
 {
@@ -101,7 +97,7 @@ namespace Xamarin.Forms
         #endregion
 
         public SendDataToServerViewModel(IAdapter adapter) : base(adapter)
-        {
+        { 
             // Default the file name to the current datetime
             var now = DateTime.Now;
             FileName = now.ToString("dd MMM yyyy HH:mm:ss");
@@ -121,6 +117,13 @@ namespace Xamarin.Forms
 
             try
             {
+                var request = new GeolocationRequest(GeolocationAccuracy.Best);
+                var location = await Geolocation.GetLocationAsync(request);
+                if (location != null)
+                {
+                    Console.WriteLine($"Latitude: {location.Latitude}, Longitude: {location.Longitude}, Altitude: {location.Altitude}");
+                }
+
                 var azureKey = GetContainerKey();
                 var blobContainer = await GetOrCreateBlobContainer(azureKey);
 
@@ -137,7 +140,7 @@ namespace Xamarin.Forms
 
                 using (var docStream = new MemoryStream())
                 {
-                    DeviceCommunicationViewModel.GetPlotPointsAsSVG(docStream, FileName);
+                    DeviceCommunicationViewModel.GetPlotPointsAsSVG(docStream, $"ECG Data @ {location.Latitude}, {location.Longitude}");
                     var blob2 = blobContainer.GetBlockBlobReference($"{FileName}.svg");
                     docStream.Position = 0;
                     await blob2.UploadFromStreamAsync(docStream, docStream.Length);
