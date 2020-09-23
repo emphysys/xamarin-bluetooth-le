@@ -602,8 +602,8 @@ namespace BLE.Client.ViewModels
 
                                     for (int j = 0; j < numDataPointsInPacket; j++)
                                     { 
-                                        var dataPoint = BitConverter.ToInt32(packetData, j * dataPointLength);
-                                        //var dataPoint = BitConverter.ToSingle(packetData, j * dataPointLength); 
+                                        //var dataPoint = BitConverter.ToInt32(packetData, j * dataPointLength);
+                                        var dataPoint = BitConverter.ToSingle(packetData, j * dataPointLength); 
                                         traceTime += TimeSpan.FromSeconds(CONTROL_LOOP_SECONDS * CONTROL_LOOP_DIV); 
 
                                         AddPointToGraph(new DataPoint(DateTimeAxis.ToDouble(traceTime), dataPoint));
