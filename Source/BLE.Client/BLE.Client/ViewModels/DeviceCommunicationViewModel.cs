@@ -15,7 +15,7 @@ using MvvmCross;
 using MvvmCross.Navigation;
 using System.Runtime.InteropServices;
 using Xamarin.Forms.Internals;
-using System.Diagnostics;
+using System.IO;
 
 namespace BLE.Client.ViewModels
 {
@@ -97,7 +97,7 @@ namespace BLE.Client.ViewModels
             }
         }
 
-        private PlotModel _PlotModel;
+        private static PlotModel _PlotModel;
         public PlotModel PlotModel
         {
             get => _PlotModel;
@@ -274,13 +274,41 @@ namespace BLE.Client.ViewModels
         /// Formats the plot data as a CSV.
         /// </summary>
         /// <returns>A \n-delimited CSV.</returns>
-        private static string GetPlotPointsAsCSV()
+        public static string GetPlotPointsAsCSVString()
         {
             var builder = new StringBuilder((int)CSVDataSizeInBytes);
             plotPoints
                 .Select(dp => $"{DateTimeAxis.ToDateTime(dp.X):HH:mm:ss-fff}, {dp.Y}\n")
                 .ForEach(s => builder.Append(s));
             return builder.ToString();
+        }
+
+        public static void GetPlotPointsAsSVG(Stream imageStream, string title)
+        {
+            ExportPlotToStream(imageStream, new SvgExporter(), title);  
+        }
+
+        public static void GetPlotPointsAsPDF(Stream pdfStream)
+        {
+            throw new NotImplementedException("PDFExporter seems to be broken.");
+        }
+
+        private static void ExportPlotToStream(Stream stream, IExporter exporter, string title)
+        {
+            var points = (_PlotModel.Series[0] as LineSeries).Points;
+
+            points.Clear();
+            points.AddRange(plotPoints);
+
+            _PlotModel.Title = title;
+            (_PlotModel.Series[0] as LineSeries).Color = OxyColors.Black;
+
+            exporter.Export(_PlotModel, stream); 
+        }
+
+        public static IPlotModel GetPlotModel()
+        {
+            return _PlotModel;
         }
 
         #endregion
@@ -341,7 +369,7 @@ namespace BLE.Client.ViewModels
         /// <summary>
         /// The number of data points that the plot data structure can hold before old data should be cleaned out. 
         /// </summary>
-        private const int CLEAN_PLOT_CAPACITY = 8192;
+        private const int CLEAN_PLOT_CAPACITY = 4096;
 
         /// <summary>
         /// The number of old data points to retain in the plot after a clean. 
@@ -486,13 +514,7 @@ namespace BLE.Client.ViewModels
         #endregion
 
         #region AZURE
-        
-        /// <summary>
-        /// I don't know how to properly transmit data between pages but this works fine. Contains the formatted plot data in a \n-delimited 
-        /// CSV format. 
-        /// </summary>
-        public static string PlotCSVData => GetPlotPointsAsCSV();
-
+         
         public static long CSVDataSizeInBytes { get; private set; }
 
         /// <summary>
@@ -607,7 +629,7 @@ namespace BLE.Client.ViewModels
                                         traceTime += TimeSpan.FromSeconds(CONTROL_LOOP_SECONDS * CONTROL_LOOP_DIV); 
 
                                         AddPointToGraph(new DataPoint(DateTimeAxis.ToDouble(traceTime), dataPoint));
-                                    } 
+                                    }
 
                                     break;
                                 case PACKETID_PACKING:

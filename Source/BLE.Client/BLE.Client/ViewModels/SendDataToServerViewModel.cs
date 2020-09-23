@@ -123,26 +123,35 @@ namespace Xamarin.Forms
             {
                 var azureKey = GetContainerKey();
                 var blobContainer = await GetOrCreateBlobContainer(azureKey);
-                var csvData = DeviceCommunicationViewModel.PlotCSVData;
 
-                if (csvData == null)
+                //var csvData = DeviceCommunicationViewModel.GetPlotPointsAsCSVString();
+
+                //if (csvData == null)
+                //{
+                //    throw new ArgumentException("testing: this should never happen");
+                //}
+
+                //var fileBlob = blobContainer.GetBlockBlobReference($"{FileName}.csv");
+
+                //await fileBlob.UploadTextAsync(csvData);
+
+                using (var docStream = new MemoryStream())
                 {
-                    throw new ArgumentException("testing: this should never happen");
+                    DeviceCommunicationViewModel.GetPlotPointsAsSVG(docStream, FileName);
+                    var blob2 = blobContainer.GetBlockBlobReference($"{FileName}.svg");
+                    docStream.Position = 0;
+                    await blob2.UploadFromStreamAsync(docStream, docStream.Length);
                 }
-                 
-                var fileBlob = blobContainer.GetBlockBlobReference($"{FileName}.csv");
-
-                await fileBlob.UploadTextAsync(csvData);
 
                 IsUploading = false;
                 IsUploadComplete = true;
-                SendButtonText = "Done!"; 
+                SendButtonText = "Done!";
             }
             catch (Exception e)  // <-- This error reporting should be further fleshed out per-type
-            { 
+            {
                 IsUploading = false;
                 ErrorMessage = e.Message;
-            } 
+            }
         }
 
 
