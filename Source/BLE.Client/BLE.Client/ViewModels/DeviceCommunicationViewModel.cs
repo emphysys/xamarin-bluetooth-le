@@ -199,7 +199,7 @@ namespace BLE.Client.ViewModels
         {
             Command = "ls";
             PlotWindowRange = "5";
-            TraceVariable = "/control/heartbeat_cnt";
+            TraceVariable = "/ecgspi/ecg_ll_norm";
             state = ResponseState.WaitForID;
 
             PlotModel = InitPlotModel();
@@ -330,6 +330,7 @@ namespace BLE.Client.ViewModels
 
             // Record the current time as the 0th trace packet time 
             previousTracePacketTime = DateTimeAxis.ToDouble(DateTime.Now);
+            traceStartTime = previousTracePacketTime;
         }
 
         /// <summary>
@@ -507,6 +508,12 @@ namespace BLE.Client.ViewModels
         #endregion
 
         private double previousTracePacketTime;
+
+        private double traceStartTime;
+
+        private int packetCount;
+
+        private const float CONTROL_LOOP_SECONDS = 1 / 2000f;
 
         /// <summary>
         /// Parses the updated TX value according to the structure of the packets that return from the board.
