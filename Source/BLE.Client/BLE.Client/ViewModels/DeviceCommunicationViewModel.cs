@@ -603,8 +603,8 @@ namespace BLE.Client.ViewModels
                                     var delta = diff / numDataPointsInPacket;  // <-- assume 10 packets for now TODO
 
                                     for (int j = 0; j < numDataPointsInPacket; j++)
-                                    {
-                                        var dataPoint = BitConverter.ToInt32(packetData, j * dataPointLength);
+                                    { 
+                                        var dataPoint = BitConverter.ToSingle(packetData, j * dataPointLength);
                                         var time = datetime + (delta * j);
 
                                         AddPointToGraph(new DataPoint(time, dataPoint));
