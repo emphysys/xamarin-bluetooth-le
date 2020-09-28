@@ -104,6 +104,8 @@ namespace BLE.Client.ViewModels
             Adapter.DeviceDisconnected += OnDeviceDisconnected;
             Adapter.DeviceConnectionLost += OnDeviceConnectionLost;
             //Adapter.DeviceConnected += (sender, e) => Adapter.DisconnectDeviceAsync(e.Device); 
+
+            DependencyService.Get<IAudioPlayer>().PlayAudioFile("wilhelm.ogg");
         }
 
         private Task GetPreviousGuidAsync()
