@@ -127,23 +127,18 @@ namespace Xamarin.Forms
                 var azureKey = GetContainerKey();
                 var blobContainer = await GetOrCreateBlobContainer(azureKey);
 
-                //var csvData = DeviceCommunicationViewModel.GetPlotPointsAsCSVString();
+                var csvData = DeviceCommunicationViewModel.GetPlotPointsAsCSVString(); 
 
-                //if (csvData == null)
-                //{
-                //    throw new ArgumentException("testing: this should never happen");
-                //}
+                var csvBlob = blobContainer.GetBlockBlobReference($"{FileName}.csv");
 
-                //var fileBlob = blobContainer.GetBlockBlobReference($"{FileName}.csv");
-
-                //await fileBlob.UploadTextAsync(csvData);
+                await csvBlob.UploadTextAsync(csvData);
 
                 using (var docStream = new MemoryStream())
                 {
                     DeviceCommunicationViewModel.GetPlotPointsAsSVG(docStream, $"ECG Data @ {location.Latitude}, {location.Longitude}");
-                    var blob2 = blobContainer.GetBlockBlobReference($"{FileName}.svg");
+                    var svgBlob = blobContainer.GetBlockBlobReference($"{FileName}.svg");
                     docStream.Position = 0;
-                    await blob2.UploadFromStreamAsync(docStream, docStream.Length);
+                    await svgBlob.UploadFromStreamAsync(docStream, docStream.Length);
                 }
 
                 IsUploading = false;

@@ -16,6 +16,7 @@ using MvvmCross.Navigation;
 using System.Runtime.InteropServices;
 using Xamarin.Forms.Internals;
 using System.IO;
+using Xamarin.Essentials;
 
 namespace BLE.Client.ViewModels
 {
@@ -143,13 +144,14 @@ namespace BLE.Client.ViewModels
 
         #region METHODS
         // These are referenced as button commands in the xaml
+        //public MvxCommand StartTrace => new MvxCommand(Test);
         public MvxCommand StartTrace => new MvxCommand(StartTracing);
         public MvxCommand StopTrace => new MvxCommand(StopTracing);
         public MvxCommand SendCommand => new MvxCommand(() => SendCommandToBoard(Command));
         public MvxCommand ClearPlot => new MvxCommand(ClearPlotData);
         public MvxCommand ClearText => new MvxCommand(ClearTextData);
         public MvxCommand SendDataToServer => new MvxCommand(SendDataToAzureServer);
-
+         
         #endregion
 
         #endregion
@@ -465,7 +467,7 @@ namespace BLE.Client.ViewModels
             var packets = GetCommandPackets(command);
             foreach (var packet in packets)
             {
-                await rx.WriteAsync(packet, new CancellationToken());
+                await rx.WriteAsync(packet); 
             }
 
             Console.WriteLine("<== Successfully wrote {0}", command);
@@ -635,7 +637,7 @@ namespace BLE.Client.ViewModels
                                     break;
                                 case PACKETID_PACKING:
                                     var dfasd = Thread.CurrentThread.ManagedThreadId;
-                                    Device.BeginInvokeOnMainThread(() => SendCommandToBoard("set /trace/wait_for_packing 0"));
+                                    MainThread.BeginInvokeOnMainThread(() => SendCommandToBoard("set /trace/wait_for_packing 0"));
                                     break;
                                 default:
                                     throw new FormatException($"Packet ID {packetID} is invalid or its data conversion is unimplemented in TxValueUpdated()!");
