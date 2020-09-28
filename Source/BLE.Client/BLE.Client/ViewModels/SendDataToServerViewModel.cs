@@ -2,17 +2,13 @@
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using MvvmCross.Commands;
-using MvvmCross.ViewModels;
 using Newtonsoft.Json.Linq;
 using Plugin.BLE.Abstractions.Contracts;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using Xamarin.Essentials;
 
 namespace Xamarin.Forms
 {
@@ -101,11 +97,11 @@ namespace Xamarin.Forms
         #endregion
 
         public SendDataToServerViewModel(IAdapter adapter) : base(adapter)
-        {
+        { 
             // Default the file name to the current datetime
             var now = DateTime.Now;
             FileName = now.ToString("dd MMM yyyy HH:mm:ss");
-            FileName = "DEBUG: Data Integrity (1 minute) ";
+            //FileName = "DEBUG: Data Integrity (1 minute) ";
 
             FileSize = DeviceCommunicationViewModel.CSVDataSizeInBytes / 1042d;
 
@@ -121,28 +117,39 @@ namespace Xamarin.Forms
 
             try
             {
+                var request = new GeolocationRequest(GeolocationAccuracy.Best);
+                var location = await Geolocation.GetLocationAsync(request);
+                if (location != null)
+                {
+                    Console.WriteLine($"Latitude: {location.Latitude}, Longitude: {location.Longitude}, Altitude: {location.Altitude}");
+                }
+
                 var azureKey = GetContainerKey();
                 var blobContainer = await GetOrCreateBlobContainer(azureKey);
-                var csvData = DeviceCommunicationViewModel.PlotCSVData;
 
-                if (csvData == null)
+                var csvData = DeviceCommunicationViewModel.GetPlotPointsAsCSVString(); 
+
+                var csvBlob = blobContainer.GetBlockBlobReference($"{FileName}.csv");
+
+                await csvBlob.UploadTextAsync(csvData);
+
+                using (var docStream = new MemoryStream())
                 {
-                    throw new ArgumentException("testing: this should never happen");
+                    DeviceCommunicationViewModel.GetPlotPointsAsSVG(docStream, $"ECG Data @ {location.Latitude}, {location.Longitude}");
+                    var svgBlob = blobContainer.GetBlockBlobReference($"{FileName}.svg");
+                    docStream.Position = 0;
+                    await svgBlob.UploadFromStreamAsync(docStream, docStream.Length);
                 }
-                 
-                var fileBlob = blobContainer.GetBlockBlobReference($"{FileName}.csv");
-
-                await fileBlob.UploadTextAsync(csvData);
 
                 IsUploading = false;
                 IsUploadComplete = true;
-                SendButtonText = "Done!"; 
+                SendButtonText = "Done!";
             }
             catch (Exception e)  // <-- This error reporting should be further fleshed out per-type
-            { 
+            {
                 IsUploading = false;
                 ErrorMessage = e.Message;
-            } 
+            }
         }
 
 

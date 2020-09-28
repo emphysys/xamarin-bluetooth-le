@@ -15,7 +15,8 @@ using MvvmCross;
 using MvvmCross.Navigation;
 using System.Runtime.InteropServices;
 using Xamarin.Forms.Internals;
-using System.Diagnostics;
+using System.IO;
+using Xamarin.Essentials;
 
 namespace BLE.Client.ViewModels
 {
@@ -97,7 +98,7 @@ namespace BLE.Client.ViewModels
             }
         }
 
-        private PlotModel _PlotModel;
+        private static PlotModel _PlotModel;
         public PlotModel PlotModel
         {
             get => _PlotModel;
@@ -143,13 +144,14 @@ namespace BLE.Client.ViewModels
 
         #region METHODS
         // These are referenced as button commands in the xaml
+        //public MvxCommand StartTrace => new MvxCommand(Test);
         public MvxCommand StartTrace => new MvxCommand(StartTracing);
         public MvxCommand StopTrace => new MvxCommand(StopTracing);
         public MvxCommand SendCommand => new MvxCommand(async() => await SendCommandToBoard(Command));
         public MvxCommand ClearPlot => new MvxCommand(ClearPlotData);
         public MvxCommand ClearText => new MvxCommand(ClearTextData);
         public MvxCommand SendDataToServer => new MvxCommand(SendDataToAzureServer);
-
+         
         #endregion
 
         #endregion
@@ -161,6 +163,7 @@ namespace BLE.Client.ViewModels
         private const byte PACKETID_SCAN = 0xbb;
         private const byte PACKETID_TRACE = 0xcc;
         private const byte PACKETID_PROXY = 0xdd;
+        private const byte PACKETID_PACKING = 0xee;
 
         /// <summary>
         /// The state of packet parsing.
@@ -198,7 +201,7 @@ namespace BLE.Client.ViewModels
         {
             Command = "ls";
             PlotWindowRange = "5";
-            TraceVariable = "/control/heartbeat_cnt";
+            TraceVariable = "/ecgspi/ecg_ll_norm";
             state = ResponseState.WaitForID;
 
             PlotModel = InitPlotModel();
@@ -273,13 +276,42 @@ namespace BLE.Client.ViewModels
         /// Formats the plot data as a CSV.
         /// </summary>
         /// <returns>A \n-delimited CSV.</returns>
-        private static string GetPlotPointsAsCSV()
+        public static string GetPlotPointsAsCSVString()
         {
             var builder = new StringBuilder((int)CSVDataSizeInBytes);
             plotPoints
                 .Select(dp => $"{DateTimeAxis.ToDateTime(dp.X):HH:mm:ss-fff}, {dp.Y}\n")
                 .ForEach(s => builder.Append(s));
             return builder.ToString();
+        }
+
+        public static void GetPlotPointsAsSVG(Stream imageStream, string title)
+        {
+            ExportPlotToStream(imageStream, new SvgExporter(), title);  
+        }
+
+        public static void GetPlotPointsAsPDF(Stream pdfStream)
+        {
+            throw new NotImplementedException("PDFExporter seems to be broken.");
+        }
+
+        private static void ExportPlotToStream(Stream stream, IExporter exporter, string title)
+        {
+            var points = (_PlotModel.Series[0] as LineSeries).Points;
+
+            points.Clear();
+            points.AddRange(plotPoints);
+
+            _PlotModel.Title = title;
+            (_PlotModel.Series[0] as LineSeries).Color = OxyColors.Black;
+            _PlotModel.TitleColor = OxyColors.Black;
+
+            exporter.Export(_PlotModel, stream); 
+        }
+
+        public static IPlotModel GetPlotModel()
+        {
+            return _PlotModel;
         }
 
         #endregion
@@ -324,8 +356,11 @@ namespace BLE.Client.ViewModels
 
             cleanPlotTokenSource = new CancellationTokenSource();
 
-            var thread = new Thread(CleanPlotThreadEntry);
-            thread.Start(cleanPlotTokenSource.Token); 
+            var thread = new Thread(CleanPlotThreadEntry); 
+            thread.Start(cleanPlotTokenSource.Token);
+
+            // Record the current time as the 0th trace packet time 
+            traceTime = DateTime.Now; 
         }
 
         /// <summary>
@@ -427,11 +462,12 @@ namespace BLE.Client.ViewModels
         public async Task SendCommandToBoard(string command)
         {
             Console.WriteLine("<== Command: {0}", command);
+
             // Write the command  
             var packets = GetCommandPackets(command);
             foreach (var packet in packets)
             {
-                await rx.WriteAsync(packet, new CancellationToken());
+                await rx.WriteAsync(packet); 
             }
 
             Console.WriteLine("<== Successfully wrote {0}", command);
@@ -481,13 +517,7 @@ namespace BLE.Client.ViewModels
         #endregion
 
         #region AZURE
-        
-        /// <summary>
-        /// I don't know how to properly transmit data between pages but this works fine. Contains the formatted plot data in a \n-delimited 
-        /// CSV format. 
-        /// </summary>
-        public static string PlotCSVData => GetPlotPointsAsCSV();
-
+         
         public static long CSVDataSizeInBytes { get; private set; }
 
         /// <summary>
@@ -500,6 +530,11 @@ namespace BLE.Client.ViewModels
         }
 
         #endregion
+
+        private DateTime traceTime;  
+
+        private const float CONTROL_LOOP_SECONDS = 1 / 2000f;
+        private const float CONTROL_LOOP_DIV = 10;
 
         /// <summary>
         /// Parses the updated TX value according to the structure of the packets that return from the board.
@@ -534,7 +569,8 @@ namespace BLE.Client.ViewModels
                 switch (state)
                 {
                     case ResponseState.WaitForID:
-                        if (data == PACKETID_PRINTF || data == PACKETID_SCAN || data == PACKETID_TRACE || data == PACKETID_PROXY)
+                        if (data == PACKETID_PRINTF || data == PACKETID_SCAN || data == PACKETID_TRACE 
+                            || data == PACKETID_PROXY || data == PACKETID_PACKING)
                         {
                             packetID = data;
                             state = ResponseState.WaitForLen1;
@@ -580,35 +616,28 @@ namespace BLE.Client.ViewModels
                                 case PACKETID_PRINTF:
                                     var str = Encoding.ASCII.GetString(packetData).Replace(CONSOLE_PROMPT, "");
                                     Response += str; Console.Write(str);
-                                    break;
-                                case PACKETID_SCAN:
-                                    // TODO
-                                    break;
-                                case PACKETID_TRACE:
-                                    DataPoint dp;
-                                    var datetime = DateTimeAxis.ToDouble(DateTime.Now);
-                                    switch (packetLength)
+                                    break; 
+                                case PACKETID_TRACE: 
+                                    var dataPointLength = 4;
+                                    var numDataPointsInPacket = (double)packetLength / dataPointLength;
+                                    if ((numDataPointsInPacket % 1) != 0)
                                     {
-                                        case 1:
-                                            dp = new DataPoint(datetime, packetData[0]);
-                                            break;
-                                        case 2:
-                                            dp = new DataPoint(datetime, BitConverter.ToInt16(packetData, 0));
-                                            break;
-                                        case 4:
-                                            dp = new DataPoint(datetime, BitConverter.ToInt32(packetData, 0));
-                                            break;
-                                        case 8:
-                                            dp = new DataPoint(datetime, BitConverter.ToInt64(packetData, 0));
-                                            break;
-                                        default:
-                                            throw new NotImplementedException($"Packet length {packetLength} not implemented in TxValueUpdated()!");
+                                        throw new ArgumentException($"Packet length of {packetLength} is not divisible by data point size {dataPointLength}!");
+                                    } 
+
+                                    for (int j = 0; j < numDataPointsInPacket; j++)
+                                    { 
+                                        //var dataPoint = BitConverter.ToInt32(packetData, j * dataPointLength);
+                                        var dataPoint = BitConverter.ToSingle(packetData, j * dataPointLength); 
+                                        traceTime += TimeSpan.FromSeconds(CONTROL_LOOP_SECONDS * CONTROL_LOOP_DIV); 
+
+                                        AddPointToGraph(new DataPoint(DateTimeAxis.ToDouble(traceTime), dataPoint));
                                     }
 
-                                    AddPointToGraph(dp);
                                     break;
-                                case PACKETID_PROXY:
-                                    // TODO
+                                case PACKETID_PACKING:
+                                    var dfasd = Thread.CurrentThread.ManagedThreadId;
+                                    MainThread.BeginInvokeOnMainThread(() => SendCommandToBoard("set /trace/wait_for_packing 0"));
                                     break;
                                 default:
                                     throw new FormatException($"Packet ID {packetID} is invalid or its data conversion is unimplemented in TxValueUpdated()!");
@@ -705,6 +734,7 @@ namespace BLE.Client.ViewModels
                 "set /trace/packet_len 4",
                 "trace_stop",
                 "trace_clear",
+                "set /trace/div 10"
             };
 
             foreach (var cmd in cmds)
