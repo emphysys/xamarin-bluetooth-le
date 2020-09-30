@@ -1,5 +1,6 @@
 ﻿using MvvmCross.Commands;
 using MvvmCross.ViewModels;
+using Plugin.BLE.Abstractions.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -73,7 +74,7 @@ namespace BLE.Client.ViewModels
 
     #endregion
 
-    public class AudioInstructionsViewModel : MvxViewModel
+    public class AudioInstructionsViewModel : BaseViewModel
     {
         private const string IMAGESOURCE_PLAY = "audioplayer_play.png";
         private const string IMAGESOURCE_STOP = "audioplayer_stop.png";
@@ -137,7 +138,7 @@ namespace BLE.Client.ViewModels
 
         private readonly IAudioPlayer audioPlayer;
 
-        public AudioInstructionsViewModel()
+        public AudioInstructionsViewModel(IAdapter adapter) : base(adapter)
         {
             CurrentAudioInstructionFile = AudioInstruction.test1;
             audioPlayer = DependencyService.Get<IAudioPlayer>();

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<views:MvxContentPage x:TypeArguments="viewModels:MainMenuViewModel" 
+                    xmlns="http://xamarin.com/schemas/2014/forms"
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
+            xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
+            x:Class="BLE.Client.Pages.MainMenuPage"
+            Title="Device Communication"
+            BackgroundColor="DarkGray" 
+            >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/> 
+        </Grid.RowDefinitions>
+        <Frame Grid.Row="1" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
+            <Button Text="Audio Instructions" TextColor="GhostWhite" Command="{Binding AudioInstructionsCommand}"/>
+        </Frame>
+        <Frame Grid.Row="2" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
+            <Button Text="Select Language" TextColor="GhostWhite" Command="{Binding SelectLanguageCommand}"/>
+        </Frame>
+        <Frame Grid.Row="3" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
+            <Button Text="Video Training" TextColor="GhostWhite" Command="{Binding VideoTrainingCommand}"/>
+        </Frame>
+        <Frame Grid.Row="4" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
+            <Button Text="Connect to Hardware" TextColor="GhostWhite" Command="{Binding ConnectCommand}"/>
+        </Frame> 
+    </Grid>
+</views:MvxContentPage>

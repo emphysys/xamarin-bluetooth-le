@@ -146,20 +146,13 @@ namespace BLE.Client.ViewModels
         #region METHODS
         // These are referenced as button commands in the xaml
         //public MvxCommand StartTrace => new MvxCommand(Test);
-        public MvxCommand StartTrace => new MvxCommand(Test);
+        public MvxCommand StartTrace => new MvxCommand(StartTracing);
         public MvxCommand StopTrace => new MvxCommand(StopTracing);
         public MvxCommand SendCommand => new MvxCommand(async() => await SendCommandToBoard(Command));
         public MvxCommand ClearPlot => new MvxCommand(ClearPlotData);
         public MvxCommand ClearText => new MvxCommand(ClearTextData);
         public MvxCommand SendDataToServer => new MvxCommand(SendDataToAzureServer);
-         
-        private void Test()
-        {
-            var assembly = IntrospectionExtensions.GetTypeInfo(typeof(DeviceCommunicationViewModel)).Assembly; 
-            var assemblyName = assembly.GetName().Name;
-            DependencyService.Get<IAudioPlayer>().PlayAudioFile($"{assemblyName}.Resources.wilhelm.mp3");
-        }
-
+          
         #endregion
 
         #endregion
