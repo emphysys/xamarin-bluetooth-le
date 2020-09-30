@@ -1,7 +1,5 @@
 ﻿using Android.Media;
 using BLE.Client;
-using BLE.Client.Pages;
-using System.Reflection;
 using Xamarin.Forms;
 
 /// <summary>
@@ -10,22 +8,36 @@ using Xamarin.Forms;
 [assembly: Dependency(typeof(AudioPlayerAndroid))]
 public class AudioPlayerAndroid : IAudioPlayer
 {
+    private MediaPlayer player;
+    private AudioFinishedDelegate previousAudioFinishedFunc;
+
     #region INTERFACE
 
-    public void PlayAudioFile(string fileName)
+    public void PlayAudioFile(string fileName, AudioFinishedDelegate audioFinishedFunc = null)
     {
-        var a = IntrospectionExtensions.GetTypeInfo(typeof(DeviceCommunicationPage)).Assembly;
-        var ee = a.GetManifestResourceNames();
-        var player = new MediaPlayer();
+        player = new MediaPlayer();
+        player.Prepared += (s, e) => player.Start();
+        player.Completion += (s, e) => { audioFinishedFunc?.Invoke(); };
 
-        using (var fd = Android.App.Application.Context.Assets.OpenFd(fileName))
-        {
-            player.Prepared += (s, e) => { player.Start(); };
-            player.SetDataSource(fd.FileDescriptor, fd.StartOffset, fd.Length);
-        }
+        previousAudioFinishedFunc = audioFinishedFunc;
 
-        player.Prepare();
+        var fd = Android.App.Application.Context.Assets.OpenFd(fileName); 
+        player.SetDataSource(fd.FileDescriptor, fd.StartOffset, fd.Length); 
+
+        player.PrepareAsync();
     }
+
+    public void StopAudio()
+    {
+        if (player.IsPlaying)
+        {
+            player.Stop();
+
+            previousAudioFinishedFunc?.Invoke();
+        }
+    }
+
+    public bool IsAudioPlaying { get => player?.IsPlaying == true; }
 
     #endregion
 

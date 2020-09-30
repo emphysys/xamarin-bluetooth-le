@@ -5,6 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Resources\button_images\**" />
+    <EmbeddedResource Remove="Resources\button_images\**" />
+    <None Remove="Resources\button_images\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="azure_keys.json" />
   </ItemGroup>
 
@@ -14,7 +20,6 @@
  
   <ItemGroup>
     <Folder Include="Properties\" />
-    <Folder Include="Resources\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +45,9 @@
   <ItemGroup>
     <EmbeddedResource Update="BleMvxFormsApp.xaml">
       <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Pages\AudioInstructionsPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="Pages\DeviceCommunicationPage.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>

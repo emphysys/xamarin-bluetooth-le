@@ -18,7 +18,7 @@ namespace BLE.Client
                 .AsInterfaces()
                 .RegisterAsLazySingleton();
 
-            RegisterAppStart<DeviceListViewModel>();
+            RegisterAppStart<AudioInstructionsViewModel>();
         }
     }
 }

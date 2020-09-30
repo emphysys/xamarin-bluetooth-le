@@ -68,6 +68,7 @@
     <None Include="Properties\AndroidManifest.xml" />
   </ItemGroup>
   <ItemGroup>
+    <AndroidResource Include="Resources\drawable\audioplayer_previous.png" />
     <AndroidResource Include="Resources\values\colors.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -166,11 +167,37 @@
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="Assets\wilhelm_mp3.mp3" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidAsset Include="..\BLE.Client\Resources\audio\wilhelm.ogg">
       <Link>Assets\wilhelm.ogg</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\audioplayer_next.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\audioplayer_play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\audioplayer_stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test1.ogg">
+      <Link>Assets\test1.ogg</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test2.ogg">
+      <Link>Assets\test2.ogg</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test3.ogg">
+      <Link>Assets\test3.ogg</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test4.ogg">
+      <Link>Assets\test4.ogg</Link>
     </AndroidAsset>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
