@@ -8,6 +8,9 @@
             Title="Audio Instructions"
             BackgroundColor="DarkGray" 
             >
+    <views:MvxContentPage.ToolbarItems> 
+        <ToolbarItem Order="Secondary" Text="Select Language..."/>
+    </views:MvxContentPage.ToolbarItems>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
