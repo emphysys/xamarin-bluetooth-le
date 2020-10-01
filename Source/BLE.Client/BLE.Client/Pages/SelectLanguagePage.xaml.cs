@@ -1,7 +1,6 @@
 ﻿using BLE.Client.ViewModels;
 using MvvmCross.Forms.Presenters.Attributes;
 using MvvmCross.Forms.Views;
-using Plugin.BLE.Abstractions.Contracts;
 
 namespace BLE.Client.Pages
 {
