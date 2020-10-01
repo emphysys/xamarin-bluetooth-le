@@ -29,7 +29,7 @@ public class AudioPlayerAndroid : IAudioPlayer
 
     public void StopAudio()
     {
-        if (player.IsPlaying)
+        if (player?.IsPlaying == true)
         {
             player.Stop();
 

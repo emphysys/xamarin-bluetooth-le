@@ -1,10 +1,10 @@
-﻿using MvvmCross.Commands;
+﻿using MvvmCross;
+using MvvmCross.Commands;
+using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Plugin.BLE.Abstractions.Contracts;
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
+using System.Collections.Generic; 
 using Xamarin.Forms;
 
 namespace BLE.Client.ViewModels
@@ -79,6 +79,8 @@ namespace BLE.Client.ViewModels
         private const string IMAGESOURCE_PLAY = "audioplayer_play.png";
         private const string IMAGESOURCE_STOP = "audioplayer_stop.png";
 
+        public static AudioPlaybackLanguage PlaybackLanguage { get; set; }
+
         #region BINDINGS
 
         #region COMMANDS
@@ -86,6 +88,7 @@ namespace BLE.Client.ViewModels
         public MvxCommand AudioPreviousCommand => new MvxCommand(AudioPrevious);
         public MvxCommand AudioPlayCommand => new MvxCommand(AudioPlay);
         public MvxCommand AudioNextCommand => new MvxCommand(AudioNext);
+        public MvxCommand SelectLanguageCommand => new MvxCommand(SelectLanguage);
 
         #endregion
 
@@ -170,6 +173,11 @@ namespace BLE.Client.ViewModels
             audioPlayer.StopAudio(); 
 
             CurrentAudioInstructionFile = CurrentAudioInstructionFile.GetNextClipOrCurrent();
+        }
+
+        private async void SelectLanguage()
+        {
+            await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<SelectLanguageViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string>()));
         }
     }
 }

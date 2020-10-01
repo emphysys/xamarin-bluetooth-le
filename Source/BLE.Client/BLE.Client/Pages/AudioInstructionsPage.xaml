@@ -9,7 +9,7 @@
             BackgroundColor="DarkGray" 
             >
     <views:MvxContentPage.ToolbarItems> 
-        <ToolbarItem Order="Secondary" Text="Select Language..."/>
+        <ToolbarItem Order="Secondary" Text="Select Language..." Command="{Binding SelectLanguageCommand}"/>
     </views:MvxContentPage.ToolbarItems>
     <Grid>
         <Grid.RowDefinitions>
