@@ -2,6 +2,7 @@
 using Foundation;
 using MvvmCross.Core;
 using MvvmCross.Forms.Platforms.Ios.Core;
+using Octane.Xamarin.Forms.VideoPlayer.iOS;
 using UIKit;
 
 namespace BLE.Client.iOS
@@ -12,6 +13,13 @@ namespace BLE.Client.iOS
         protected override void RegisterSetup()
         {
             this.RegisterSetupType<Setup>();
+        }
+
+        public override void FinishedLaunching(UIApplication application)
+        {
+            base.FinishedLaunching(application);
+
+            FormsVideoPlayer.Init();
         }
     }
 }

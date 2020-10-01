@@ -7,6 +7,7 @@ using Android.Views;
 using Android.Widget;
 using Android.OS;
 using MvvmCross.Forms.Platforms.Android.Views;
+using Octane.Xamarin.Forms.VideoPlayer.Android;
 
 namespace BLE.Client.Droid
 {
@@ -24,6 +25,7 @@ namespace BLE.Client.Droid
             base.OnCreate(bundle);
 
             Xamarin.Essentials.Platform.Init(this, bundle);
+            FormsVideoPlayer.Init();
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)

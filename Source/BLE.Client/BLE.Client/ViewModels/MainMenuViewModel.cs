@@ -42,9 +42,9 @@ namespace BLE.Client.ViewModels
             await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<SelectLanguageViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string>()));  
         }
 
-        private void VideoTraining()
+        private async void VideoTraining()
         {
-            throw new NotImplementedException();
+            await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<VideoTutorialViewModel, MvxBundle>(null);
         }
 
         private void Connect()

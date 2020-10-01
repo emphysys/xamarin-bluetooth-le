@@ -12,10 +12,12 @@
 
   <ItemGroup>
     <None Remove="azure_keys.json" />
+    <None Remove="Resources\video\test.mp4" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="azure_keys.json" />
+    <EmbeddedResource Include="Resources\video\test.mp4" />
   </ItemGroup>
  
   <ItemGroup>
@@ -29,6 +31,7 @@
     <PackageReference Include="MvvmCross" Version="6.3.1" />
     <PackageReference Include="MvvmCross.Forms" Version="6.3.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Octane.Xam.VideoPlayer" Version="3.1.0" />
     <PackageReference Include="OxyPlot.Core" Version="2.0.0" />
     <PackageReference Include="OxyPlot.Xamarin.Forms" Version="1.0.0" />
     <PackageReference Include="Plugin.Permissions" Version="3.0.0.12" />
@@ -60,6 +63,9 @@
     </EmbeddedResource>
     <EmbeddedResource Update="Pages\SendDataToServerPage.xaml">
       <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Pages\VideoTutorialPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
   </ItemGroup>
 

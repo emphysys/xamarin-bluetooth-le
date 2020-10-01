@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<views:MvxContentPage x:TypeArguments="viewModels:VideoTutorialViewModel"
+            xmlns="http://xamarin.com/schemas/2014/forms"
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
+            xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
+            xmlns:o="clr-namespace:Octane.Xamarin.Forms.VideoPlayer;assembly=Octane.Xamarin.Forms.VideoPlayer"
+            x:Class="BLE.Client.Pages.VideoTutorialPage"
+            Title="Audio Instructions"
+            BackgroundColor="DarkGray" 
+            >
+    <StackLayout>
+        <Label Text="where the video at"/>
+        <o:VideoPlayer Source="{Binding VideoSource}"/>
+    </StackLayout>
+</views:MvxContentPage>
