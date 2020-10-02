@@ -8,6 +8,8 @@ using Android.Widget;
 using Android.OS;
 using MvvmCross.Forms.Platforms.Android.Views;
 using Octane.Xamarin.Forms.VideoPlayer.Android;
+using Plugin.CurrentActivity;
+using Plugin.Permissions;
 
 namespace BLE.Client.Droid
 {
@@ -23,6 +25,7 @@ namespace BLE.Client.Droid
             TabLayoutResource = Resource.Layout.tabs;
 
             base.OnCreate(bundle);
+            CrossCurrentActivity.Current.Activity = this;
 
             Xamarin.Essentials.Platform.Init(this, bundle);
             FormsVideoPlayer.Init();
@@ -31,6 +34,7 @@ namespace BLE.Client.Droid
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
         {
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+            PermissionsImplementation.Current.OnRequestPermissionsResult(requestCode, permissions, grantResults);
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }

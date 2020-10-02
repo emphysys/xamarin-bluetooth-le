@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace BLE.Client.ViewModels
 {
@@ -34,28 +35,26 @@ namespace BLE.Client.ViewModels
         #endregion
 
         private readonly IBluetoothLE bluetoothLe;
-        private readonly IUserDialogs userDialogs;
-        private readonly ISettings settings;
+        private readonly IUserDialogs userDialogs; 
         private readonly IPermissions permissions;
          
         private readonly Guid BOARD_UUID = Guid.Parse("00000000-0000-0000-0000-80e126082948");
 
-        public MainMenuViewModel(IBluetoothLE bluetoothLe, IAdapter adapter, IUserDialogs userDialogs, ISettings settings, IPermissions permissions) : base(adapter)
+        public MainMenuViewModel(IBluetoothLE bluetoothLe, IAdapter adapter, IUserDialogs userDialogs, ISettings _, IPermissions permissions) : base(adapter)
         {
             this.bluetoothLe = bluetoothLe;
-            this.userDialogs = userDialogs;
-            this.settings = settings;
+            this.userDialogs = userDialogs; 
             this.permissions = permissions; 
         }
          
         private async void AudioInstructions()
         {
-            await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<AudioInstructionsViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string>()));
+            await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<AudioInstructionsViewModel, MvxBundle>(null);
         }
 
         private async void SelectLanguage()
         { 
-            await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<SelectLanguageViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string>()));  
+            await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<SelectLanguageViewModel, MvxBundle>(null);  
         }
 
         private async void VideoTraining()
@@ -65,7 +64,16 @@ namespace BLE.Client.ViewModels
 
         private async void Connect()
         {
-            if (!await userDialogs.ConfirmAsync("Connect to the board?"))
+            if (!bluetoothLe.IsOn || bluetoothLe.State != BluetoothState.On)
+            {
+                await userDialogs.AlertAsync("Bluetooth is not on! Enable Bluetooth on your phone to proceed.");
+                return;
+            }
+            if (!await CheckOrRequestConnectPermissions())
+            {
+                return;
+            }
+            if (!await userDialogs.ConfirmAsync($"Connect to Device {BOARD_UUID}?"))
             {
                 return;
             }
@@ -111,6 +119,26 @@ namespace BLE.Client.ViewModels
             {
                 await userDialogs.AlertAsync($"Unknown error occurred: {e.Message}.");
             }
+        }
+
+        private async Task<bool> CheckOrRequestConnectPermissions()
+        {
+            if (Xamarin.Forms.Device.RuntimePlatform == Xamarin.Forms.Device.Android)
+            {
+                var status = await permissions.CheckPermissionStatusAsync(Permission.Location);
+                if (status != PermissionStatus.Granted)
+                {
+                    var permissionResult = await permissions.RequestPermissionsAsync(Permission.Location);
+                    if (permissionResult[Permission.Location] != PermissionStatus.Granted)
+                    {
+                        await userDialogs.AlertAsync("Location Permission Denied! Cannot Connect!");
+                        permissions.OpenAppSettings();
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }
