@@ -1,8 +1,5 @@
 ﻿using Octane.Xamarin.Forms.VideoPlayer;
 using Plugin.BLE.Abstractions.Contracts;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BLE.Client.ViewModels
 {

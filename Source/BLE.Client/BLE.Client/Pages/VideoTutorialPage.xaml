@@ -10,7 +10,7 @@
             BackgroundColor="DarkGray" 
             >
     <StackLayout>
-        <Label Text="where the video at"/>
-        <o:VideoPlayer Source="{Binding VideoSource}"/>
+        <Label Text="Training Video"/>
+        <o:VideoPlayer Source="{Binding VideoSource}" FillMode="Resize"/>
     </StackLayout>
 </views:MvxContentPage>
