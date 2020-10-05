@@ -10,6 +10,7 @@ using Plugin.Permissions.Abstractions;
 using Plugin.Settings.Abstractions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,16 +38,18 @@ namespace BLE.Client.ViewModels
         private readonly IBluetoothLE bluetoothLe;
         private readonly IUserDialogs userDialogs; 
         private readonly IPermissions permissions;
-         
-        private readonly Guid BOARD_UUID = Guid.Parse("00000000-0000-0000-0000-80e126082948");
+        
+        private readonly Guid BOARD_UUID = Guid.Parse("00000000-0000-0000-0000-80e126082948");  // looks like common prefix is 80e12608
 
         public MainMenuViewModel(IBluetoothLE bluetoothLe, IAdapter adapter, IUserDialogs userDialogs, ISettings _, IPermissions permissions) : base(adapter)
         {
             this.bluetoothLe = bluetoothLe;
             this.userDialogs = userDialogs; 
-            this.permissions = permissions; 
+            this.permissions = permissions;
+
+            Adapter.DeviceDiscovered += Adapter_DeviceDiscovered;
         }
-         
+
         private async void AudioInstructions()
         {
             await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<AudioInstructionsViewModel, MvxBundle>(null);
@@ -95,8 +98,18 @@ namespace BLE.Client.ViewModels
                 using (var progress = userDialogs.Progress(config))
                 {
                     progress.Show();
+                     
+                    await Adapter.StartScanningForDevicesAsync(deviceFilter: (IDevice d) => d.Id.ToString().Split('-').Last().Contains("80e12608"));
+                    var wasDeviceFound = AwaitDeviceDiscoveredOrTimeout();
 
-                    device = await Adapter.ConnectToKnownDeviceAsync(BOARD_UUID, connectParams, tokenSource.Token);
+                    if (!wasDeviceFound || Adapter.DiscoveredDevices.Count != 1)
+                    {
+                        await userDialogs.AlertAsync("Device not found! Reset the board and try again.");
+                        return;
+                    }
+
+                    device = Adapter.DiscoveredDevices[0]; 
+                    await Adapter.ConnectToDeviceAsync(device, cancellationToken: tokenSource.Token);
                 }
 
                 await userDialogs.AlertAsync("Connection complete!");
@@ -119,6 +132,20 @@ namespace BLE.Client.ViewModels
             {
                 await userDialogs.AlertAsync($"Unknown error occurred: {e.Message}.");
             }
+        }
+         
+        private readonly ManualResetEvent deviceDiscoveryCV = new ManualResetEvent(false);
+
+        private void Adapter_DeviceDiscovered(object sender, Plugin.BLE.Abstractions.EventArgs.DeviceEventArgs e)
+        {
+            // Awaken the work thread
+            deviceDiscoveryCV.Set();
+        }
+
+        private bool AwaitDeviceDiscoveredOrTimeout()
+        {
+            // Await device discovery or adapter scan timeout
+            return deviceDiscoveryCV.WaitOne(Adapter.ScanTimeout);
         }
 
         private async Task<bool> CheckOrRequestConnectPermissions()
