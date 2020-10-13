@@ -1,4 +1,5 @@
-﻿using BLE.Client.ViewModels;
+﻿using BLE.Client.Helpers;
+using BLE.Client.ViewModels;
 using MvvmCross.Forms.Views;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,13 @@ namespace BLE.Client.Pages
         public VideoTutorialPage()
         {
             InitializeComponent();
+
+            DependencyService.Get<ILandscapeOrientationEnforcer>().ForceCurrentScreenLandscape();
+        }
+
+        protected override void OnDisappearing()
+        {
+            DependencyService.Get<ILandscapeOrientationEnforcer>().RevertToPortrait();
         }
     }
 }
