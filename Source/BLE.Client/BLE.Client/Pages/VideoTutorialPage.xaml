@@ -7,10 +7,14 @@
             xmlns:o="clr-namespace:Octane.Xamarin.Forms.VideoPlayer;assembly=Octane.Xamarin.Forms.VideoPlayer"
             x:Class="BLE.Client.Pages.VideoTutorialPage"
             Title="Audio Instructions"
-            BackgroundColor="DarkGray" 
+            BackgroundColor="DarkGray"
             >
-    <StackLayout>
-        <Label Text="Training Video"/>
-        <o:VideoPlayer Source="{Binding VideoSource}" FillMode="Resize"/>
-    </StackLayout>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <o:VideoPlayer Grid.Row="1" Source="{Binding VideoSource}" FillMode="ResizeAspect"/>
+    </Grid>
 </views:MvxContentPage>

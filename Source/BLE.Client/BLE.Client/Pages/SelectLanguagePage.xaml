@@ -11,17 +11,16 @@
             >
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="5*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/> 
         </Grid.RowDefinitions>
-        <Frame Grid.Row="1" CornerRadius="7" Margin="50,10,50,0" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
-            <Label Text="Select Audio Playback Language:" />
+        <Frame Grid.Row="0" CornerRadius="7" Margin="15,20" BackgroundColor="LightGray" Padding="10,20" HasShadow="False">
+            <Label Text="Select Audio Playback Language:" FontSize="Title" TextColor="DarkSlateGray"/>
         </Frame>
-        <Frame Grid.Row="3" CornerRadius="7" Margin="50,10,50,0" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
-            <Picker Title="(choose language)" TitleColor="GhostWhite" BackgroundColor="SteelBlue" SelectedItem="{Binding SelectedLanguageStr}">
+        <Frame Grid.Row="1" CornerRadius="7" Margin="15,20" BackgroundColor="LightGray" Padding="5,5,5,5" HasShadow="False">
+            <Picker Title="Choose Language" TitleColor="Gray" TextColor="DarkSlateGray" BackgroundColor="LightGray" 
+                    SelectedItem="{Binding SelectedLanguageStr}">
                 <Picker.ItemsSource>
                     <x:Array Type="{x:Type x:String}">
                         <x:String>English</x:String>

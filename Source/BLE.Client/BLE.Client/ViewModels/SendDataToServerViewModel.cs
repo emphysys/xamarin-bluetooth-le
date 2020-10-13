@@ -29,6 +29,17 @@ namespace Xamarin.Forms
             }
         }
 
+        private string _AzureContainerName;
+        public string AzureContainerName
+        {
+            get => _AzureContainerName;
+            set
+            {
+                _AzureContainerName = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private bool _IsUploading;
         public bool IsUploading
         {
@@ -100,12 +111,12 @@ namespace Xamarin.Forms
         { 
             // Default the file name to the current datetime
             var now = DateTime.Now;
-            FileName = now.ToString("dd MMM yyyy HH:mm:ss");
-            //FileName = "DEBUG: Data Integrity (1 minute) ";
+            FileName = now.ToString("dd MMM yyyy HH:mm:ss"); 
 
             FileSize = DeviceCommunicationViewModel.CSVDataSizeInBytes / 1042d;
 
             SendButtonText = "Send";
+            AzureContainerName = AZURE_CONTAINERNAME;
         }
 
         /// <summary>
@@ -209,7 +220,7 @@ namespace Xamarin.Forms
         {
             var str = string.Format(AZURE_CONNECTIONSTR, key);
             var client = CloudStorageAccount.Parse(str).CreateCloudBlobClient();
-            var container = client.GetContainerReference(AZURE_CONTAINERNAME);
+            var container = client.GetContainerReference(AzureContainerName);
 
             await container.CreateIfNotExistsAsync();
 

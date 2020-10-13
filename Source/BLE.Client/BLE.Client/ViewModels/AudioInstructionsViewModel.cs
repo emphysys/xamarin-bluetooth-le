@@ -25,7 +25,7 @@ namespace BLE.Client.ViewModels
 
         public static string GetClipTitle(this AudioInstruction file)
         {
-            return $"Current File: {file}";
+            return file.ToString();
         }
 
         public static string GetClipFileName(this AudioInstruction file)

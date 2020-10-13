@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Xamarin.Forms.Internals;
 
 namespace BLE.Client.ViewModels
 {
@@ -36,15 +37,14 @@ namespace BLE.Client.ViewModels
         #endregion
 
         private readonly IBluetoothLE bluetoothLe;
-        private readonly IUserDialogs userDialogs; 
+        private readonly IUserDialogs userDialogs;
         private readonly IPermissions permissions;
-        
-        private readonly Guid BOARD_UUID = Guid.Parse("00000000-0000-0000-0000-80e126082948");  // looks like common prefix is 80e12608
+
 
         public MainMenuViewModel(IBluetoothLE bluetoothLe, IAdapter adapter, IUserDialogs userDialogs, ISettings _, IPermissions permissions) : base(adapter)
         {
             this.bluetoothLe = bluetoothLe;
-            this.userDialogs = userDialogs; 
+            this.userDialogs = userDialogs;
             this.permissions = permissions;
 
             Adapter.DeviceDiscovered += Adapter_DeviceDiscovered;
@@ -56,8 +56,8 @@ namespace BLE.Client.ViewModels
         }
 
         private async void SelectLanguage()
-        { 
-            await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<SelectLanguageViewModel, MvxBundle>(null);  
+        {
+            await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<SelectLanguageViewModel, MvxBundle>(null);
         }
 
         private async void VideoTraining()
@@ -76,7 +76,7 @@ namespace BLE.Client.ViewModels
             {
                 return;
             }
-            if (!await userDialogs.ConfirmAsync($"Connect to Device {BOARD_UUID}?"))
+            if (!await userDialogs.ConfirmAsync($"Connect to Device?"))
             {
                 return;
             }
@@ -98,17 +98,24 @@ namespace BLE.Client.ViewModels
                 using (var progress = userDialogs.Progress(config))
                 {
                     progress.Show();
-                     
-                    await Adapter.StartScanningForDevicesAsync(deviceFilter: (IDevice d) => d.Id.ToString().Split('-').Last().Contains("80e12608"));
+
+                    await Adapter.StartScanningForDevicesAsync(deviceFilter: DeviceConnectionPredicate);
                     var wasDeviceFound = AwaitDeviceDiscoveredOrTimeout();
 
-                    if (!wasDeviceFound || Adapter.DiscoveredDevices.Count != 1)
+                    if (!wasDeviceFound || Adapter.DiscoveredDevices.Count == 0)
                     {
-                        await userDialogs.AlertAsync("Device not found! Reset the board and try again.");
+                        await userDialogs.AlertAsync("Device not found! Reset the board and try again. (If you're on Android, make sure that your " +
+                            "location is on!)");
                         return;
                     }
 
-                    device = Adapter.DiscoveredDevices[0]; 
+                    if (Adapter.DiscoveredDevices.Count > 1)
+                    {
+                        await userDialogs.AlertAsync("Two or more devices found... uh oh");
+                        return;
+                    }
+
+                    device = Adapter.DiscoveredDevices[0];
                     await Adapter.ConnectToDeviceAsync(device, cancellationToken: tokenSource.Token);
                 }
 
@@ -133,7 +140,32 @@ namespace BLE.Client.ViewModels
                 await userDialogs.AlertAsync($"Unknown error occurred: {e.Message}.");
             }
         }
-         
+
+        private bool DeviceConnectionPredicate(IDevice dev)
+        { 
+            return (dev.Name?.Equals("EMPBM")).GetValueOrDefault(false);
+            //Console.WriteLine($">>> {dev.Id}"); 
+            //if (dev.Id.Equals(Guid.Parse("00000000-0000-0000-0000-80e126082948")))
+            //{
+            //    //var asdf = Task.Run(() => Adapter.ConnectToDeviceAsync(dev));
+            //    //asdf.Wait();
+            //    var na = dev.Name;
+            //}
+             
+            ////var task = dev.GetServicesAsync();
+            ////Task.WaitAll(task);
+            //var task = Task.Run(() => dev.GetServicesAsync());
+            //task.Wait(); 
+
+            //var services = task.Result; //services.ForEach(s => Console.WriteLine($">>> {s.Id}"));
+            //return services.Any((s) => s.Id.Equals(a));
+            //(IDevice d) => d.Id.ToString().Split('-').Last().Contains("80e12608")
+            //return (await dev.GetServicesAsync()).Any((s) => s.Id.Equals(a));
+        }
+
+        /// <summary>
+        /// Condition variable for device discovery
+        /// </summary>
         private readonly ManualResetEvent deviceDiscoveryCV = new ManualResetEvent(false);
 
         private void Adapter_DeviceDiscovered(object sender, Plugin.BLE.Abstractions.EventArgs.DeviceEventArgs e)
