@@ -28,7 +28,7 @@
         <Frame Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" CornerRadius="7" Margin="15, 15, 15, 30" BackgroundColor="LightGray" Padding="10,20" HasShadow="True">
             <Label Text="What would you like to do?" HorizontalOptions="Start" FontSize="Title" TextColor="DarkSlateGray"/>
         </Frame>
-        <Frame Grid.Row="1" Grid.Column="1" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="Gray" Padding="3" HasShadow="True">
+        <Frame Grid.Row="1" Grid.Column="1" CornerRadius="7" Margin="2" BackgroundColor="Gray" Padding="3" HasShadow="True">
             <Button Text="Audio Instructions" TextColor="DarkSlateGray" Command="{Binding AudioInstructionsCommand}"/>
         </Frame>
         <Frame Grid.Row="3" Grid.Column="1" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="Gray" Padding="3" HasShadow="True">
