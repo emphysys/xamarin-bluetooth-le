@@ -171,11 +171,6 @@
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\wilhelm.ogg">
-      <Link>Assets\wilhelm.ogg</Link>
-    </AndroidAsset>
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\audioplayer_next.png" />
   </ItemGroup>
   <ItemGroup>
@@ -185,43 +180,43 @@
     <AndroidResource Include="Resources\drawable\audioplayer_stop.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test1_english.ogg">
-      <Link>Assets\test1_english.ogg</Link>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test1_english.wav">
+      <Link>Assets\test1_english.wav</Link>
     </AndroidAsset>
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test2_english.ogg">
-      <Link>Assets\test2_english.ogg</Link>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test1_italian.wav">
+      <Link>Assets\test1_italian.wav</Link>
     </AndroidAsset>
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test3_english.ogg">
-      <Link>Assets\test3_english.ogg</Link>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test2_english.wav">
+      <Link>Assets\test2_english.wav</Link>
     </AndroidAsset>
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test4_english.ogg">
-      <Link>Assets\test4_english.ogg</Link>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test2_italian.wav">
+      <Link>Assets\test2_italian.wav</Link>
     </AndroidAsset>
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test1_italian.ogg">
-      <Link>Assets\test1_italian.ogg</Link>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test3_english.wav">
+      <Link>Assets\test3_english.wav</Link>
     </AndroidAsset>
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test2_italian.ogg">
-      <Link>Assets\test2_italian.ogg</Link>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test3_italian.wav">
+      <Link>Assets\test3_italian.wav</Link>
     </AndroidAsset>
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test3_italian.ogg">
-      <Link>Assets\test3_italian.ogg</Link>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test4_english.wav">
+      <Link>Assets\test4_english.wav</Link>
     </AndroidAsset>
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test4_italian.ogg">
-      <Link>Assets\test4_italian.ogg</Link>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\test4_italian.wav">
+      <Link>Assets\test4_italian.wav</Link>
     </AndroidAsset>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />

@@ -30,7 +30,7 @@ namespace BLE.Client.ViewModels
 
         public static string GetClipFileName(this AudioInstruction file)
         {
-            return $"{file}_{AudioInstructionsViewModel.PlaybackLanguage.GetAudioFileSuffix()}.ogg";
+            return $"{file}_{AudioInstructionsViewModel.PlaybackLanguage.GetAudioFileSuffix()}.wav";
         }
 
         public static bool TryGetPreviousClip(this AudioInstruction file, out AudioInstruction maybePreviousFile)

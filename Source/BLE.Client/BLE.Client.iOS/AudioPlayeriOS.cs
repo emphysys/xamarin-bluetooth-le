@@ -10,29 +10,26 @@ namespace BLE.Client.iOS
 
     public class AudioPlayeriOS : IAudioPlayer
     {
-        #region INTERFACE
+        private AVAudioPlayer player;
 
-        public void PlayAudioFile(string fileName)
+        #region INTERFACE
+         
+        public void PlayAudioFile(string fileName, AudioFinishedDelegate audioFinishedFunc = null)
         {
             var filePath = NSBundle.MainBundle.PathForResource(Path.GetFileNameWithoutExtension(fileName), Path.GetExtension(fileName));
             var url = NSUrl.FromString(filePath);
 
-            var player = AVAudioPlayer.FromUrl(url);
-            player.FinishedPlaying += (a, b) => { player = null; };
+            player = AVAudioPlayer.FromUrl(url);
+            player.FinishedPlaying += (a, b) => { player = null; audioFinishedFunc(); };
             player.Play();
-        }
-
-        public void PlayAudioFile(string fileName, AudioFinishedDelegate audioFinishedFunc = null)
-        {
-            throw new System.NotImplementedException();
         }
 
         public void StopAudio()
         {
-            throw new System.NotImplementedException();
+            player?.Stop();
         }
 
-        public bool IsAudioPlaying => throw new System.NotImplementedException();
+        public bool IsAudioPlaying => player?.Playing == true;
         #endregion
     }
 }

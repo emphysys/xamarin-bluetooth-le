@@ -203,6 +203,66 @@
   <ItemGroup>
     <BundleResource Include="Resources\splash_1x.png" />
   </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\button_images\audioplayer_next.png">
+      <Link>Resources\audioplayer_next.png</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\button_images\audioplayer_play.png">
+      <Link>Resources\audioplayer_play.png</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\button_images\audioplayer_previous.png">
+      <Link>Resources\audioplayer_previous.png</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\button_images\audioplayer_stop.png">
+      <Link>Resources\audioplayer_stop.png</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\audio\test1_english.wav">
+      <Link>Resources\test1_english.wav</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\audio\test1_italian.wav">
+      <Link>Resources\test1_italian.wav</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\audio\test2_english.wav">
+      <Link>Resources\test2_english.wav</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\audio\test2_italian.wav">
+      <Link>Resources\test2_italian.wav</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\audio\test3_english.wav">
+      <Link>Resources\test3_english.wav</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\audio\test3_italian.wav">
+      <Link>Resources\test3_italian.wav</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\audio\test4_english.wav">
+      <Link>Resources\test4_english.wav</Link>
+    </BundleResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="..\BLE.Client\Resources\audio\test4_italian.wav">
+      <Link>Resources\test4_italian.wav</Link>
+    </BundleResource>
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
