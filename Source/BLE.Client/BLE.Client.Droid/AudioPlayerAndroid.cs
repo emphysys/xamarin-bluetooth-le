@@ -1,5 +1,7 @@
 ﻿using Android.Media;
 using BLE.Client;
+using System.Threading;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 /// <summary>
@@ -9,23 +11,29 @@ using Xamarin.Forms;
 public class AudioPlayerAndroid : IAudioPlayer
 {
     private MediaPlayer player;
-    private AudioFinishedDelegate previousAudioFinishedFunc;
+    private AudioFinishedDelegate previousAudioFinishedFunc; 
 
     #region INTERFACE
 
-    public void PlayAudioFile(string fileName, AudioFinishedDelegate audioFinishedFunc = null)
+    public void PlayAudioFile(string fileName, CancellationToken token, AudioFinishedDelegate audioFinishedFunc = null)
     {
         player = new MediaPlayer();
-        player.Prepared += (s, e) => player.Start();
+        player.Prepared += (s, e) => player.Start(); 
         player.Completion += (s, e) => { audioFinishedFunc?.Invoke(); };
 
         previousAudioFinishedFunc = audioFinishedFunc;
 
         var fd = Android.App.Application.Context.Assets.OpenFd(fileName); 
-        player.SetDataSource(fd.FileDescriptor, fd.StartOffset, fd.Length); 
+        player.SetDataSource(fd.FileDescriptor, fd.StartOffset, fd.Length);
 
-        player.PrepareAsync();
-    }
+        if (token.IsCancellationRequested) return; 
+        token.Register(() => player.Stop());
+
+        if (!token.IsCancellationRequested)
+        {
+            player.PrepareAsync();
+        }
+    } 
 
     public void StopAudio()
     {

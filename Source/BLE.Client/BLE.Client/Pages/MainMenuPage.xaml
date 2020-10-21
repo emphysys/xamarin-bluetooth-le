@@ -34,7 +34,7 @@
         <Frame Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" CornerRadius="7" Margin="15, 15, 15, 30" BackgroundColor="LightGray" Padding="10,20" HasShadow="True">
             <StackLayout Orientation="Vertical">
                 <Label Text="What would you like to do?" HorizontalOptions="Start" VerticalOptions="Center" FontSize="Title" TextColor="DarkSlateGray"/>
-                <Label Text="{Binding IsConnected, Converter={StaticResource ConnectionStatusTitleConverter}}"/>
+                <Label Text="{Binding IsConnected, Converter={StaticResource ConnectionStatusTitleConverter}, StringFormat='(Connection Status: {0})'}"/>
             </StackLayout>
         </Frame>
         <Frame Grid.Row="1" Grid.Column="1" CornerRadius="7" Margin="2" BackgroundColor="Gray" Padding="3" HasShadow="True">

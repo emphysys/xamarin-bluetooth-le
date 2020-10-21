@@ -4,7 +4,10 @@ using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Plugin.BLE.Abstractions.Contracts;
 using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
+using System.Threading;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace BLE.Client.ViewModels
@@ -92,7 +95,7 @@ namespace BLE.Client.ViewModels
         #region COMMANDS
 
         public MvxCommand AudioPreviousCommand => new MvxCommand(AudioPrevious);
-        public MvxCommand AudioPlayCommand => new MvxCommand(AudioPlay);
+        public MvxCommand AudioPlayCommand => new MvxCommand(MoveToNextClipFromUserInput);
         public MvxCommand AudioNextCommand => new MvxCommand(AudioNext);
         public MvxCommand SelectLanguageCommand => new MvxCommand(SelectLanguage);
 
@@ -147,11 +150,136 @@ namespace BLE.Client.ViewModels
 
         private readonly IAudioPlayer audioPlayer;
 
+        /// <summary>
+        /// For later use, should the board end up directing audio playback
+        /// </summary>
+        private IDevice BoardBluetoothDevice => MainMenuViewModel.BoardBluetoothDevice;
+
+        private readonly CancellationTokenSource audioLoopTokenSource;
+        private readonly Thread audioLoopThread;
+
         public AudioInstructionsViewModel(IAdapter adapter) : base(adapter)
         {
             CurrentAudioInstructionFile = AudioInstruction.test1;
             audioPlayer = DependencyService.Get<IAudioPlayer>();
+
+            audioLoopTokenSource = new CancellationTokenSource();
+            audioLoopThread = new Thread(AudioLoopThreadEntry);
+            audioLoopThread.Start(audioLoopTokenSource.Token);
         }
+
+
+
+        private readonly Stack<AudioInstruction> previousInstructions = new Stack<AudioInstruction>();
+
+        private AudioInstruction _tempCurrentInstruction;
+         
+        private readonly ManualResetEventSlim playCV = new ManualResetEventSlim(false);
+
+        private void AudioLoopThreadEntry(object tokenObject)
+        {
+            var token = (CancellationToken)tokenObject; 
+
+            // Check token after each step and quick-quit if canceled
+            while (!token.IsCancellationRequested)
+            {
+                var instruction = AwaitResponseFromBoard_AudioLoopThread(token);
+
+                if (token.IsCancellationRequested) return;
+
+                playCV.Reset();
+                PlayClip_AudioLoopThread(instruction, token);
+
+                if (token.IsCancellationRequested) return;
+
+                playCV.Reset();
+                WaitForUserAcknowledgement_AudioLoopThread(token);
+            }
+        }
+
+        private AudioInstruction AwaitResponseFromBoard_AudioLoopThread(CancellationToken token)
+        {
+            // Mock board behavior for now 
+            if (token.IsCancellationRequested) return default;
+
+            try
+            { 
+                Task.Delay(TimeSpan.FromSeconds(1), token); 
+            }
+            catch (TaskCanceledException e)
+            {
+                // If the same token threw, then the task was canceled
+                if (!e.CancellationToken.Equals(token))
+                {
+                    throw e;
+                } 
+            }
+
+            AudioInstruction toReturn = _tempCurrentInstruction;
+            _tempCurrentInstruction = (AudioInstruction)((int)_tempCurrentInstruction + 1);
+            return toReturn;
+        }
+
+        private void PlayClip_AudioLoopThread(AudioInstruction instruction, CancellationToken token)
+        {
+            ImageButtonPlayImageSource = IMAGESOURCE_STOP;
+            audioPlayer.PlayAudioFile(instruction.GetClipFileName(), token, PlayClip_ClipFinished_AudioLoopThread);
+             
+            if (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    playCV.Wait(token);
+                }
+                catch (OperationCanceledException e)
+                {
+                    // If the same token threw, then the task was canceled
+                    if (!e.CancellationToken.Equals(token))
+                    {
+                        throw e;
+                    }
+                }
+            }
+        }
+
+        private void PlayClip_ClipFinished_AudioLoopThread()
+        {
+            ImageButtonPlayImageSource = IMAGESOURCE_PLAY;
+             
+            playCV.Set(); 
+        }
+
+        private void WaitForUserAcknowledgement_AudioLoopThread(CancellationToken token)
+        { 
+            if (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    playCV.Wait(token);
+                }
+                catch (OperationCanceledException e)
+                {
+                    // If the same token threw, then the task was canceled
+                    if (!e.CancellationToken.Equals(token))
+                    {
+                        throw e;
+                    }
+                }
+            }
+        }
+
+        private void MoveToNextClipFromUserInput()
+        { 
+            playCV.Set(); 
+        }
+
+        public override void ViewDisappearing()
+        {
+            base.ViewDisappearing();
+
+            audioLoopTokenSource.Cancel();
+        }
+
 
         private void AudioPrevious()
         {
@@ -170,7 +298,7 @@ namespace BLE.Client.ViewModels
             else
             {
                 ImageButtonPlayImageSource = IMAGESOURCE_STOP;
-                audioPlayer.PlayAudioFile(CurrentAudioInstructionFile.GetClipFileName(), () => ImageButtonPlayImageSource = IMAGESOURCE_PLAY); 
+                //audioPlayer.PlayAudioFile(CurrentAudioInstructionFile.GetClipFileName(), () => ImageButtonPlayImageSource = IMAGESOURCE_PLAY); 
             }
         }
 
@@ -185,5 +313,8 @@ namespace BLE.Client.ViewModels
         {
             await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<SelectLanguageViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string>()));
         }
+          
     }
+
+
 }

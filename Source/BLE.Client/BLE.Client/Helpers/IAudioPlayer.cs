@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace BLE.Client
 {
@@ -15,8 +16,9 @@ namespace BLE.Client
         /// Plays the audio file at the specified path.
         /// </summary>
         /// <param name="fileName">The file to play.</param>
+        /// <param name="token">The token upon which to cancel.</param>
         /// <param name="audioFinishedFunc">An optional function to call when audio is finished playing.</param>
-        void PlayAudioFile(string fileName, AudioFinishedDelegate audioFinishedFunc = null);
+        void PlayAudioFile(string fileName, CancellationToken token, AudioFinishedDelegate audioFinishedFunc = null);
 
         void StopAudio();
 

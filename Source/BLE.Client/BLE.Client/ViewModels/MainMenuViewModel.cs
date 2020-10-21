@@ -51,7 +51,7 @@ namespace BLE.Client.ViewModels
         private readonly IUserDialogs userDialogs;
         private readonly IPermissions permissions;
 
-        private IDevice boardBluetoothDevice;
+        public static IDevice BoardBluetoothDevice { get; private set; }
 
         public MainMenuViewModel(IBluetoothLE bluetoothLe, IAdapter adapter, IUserDialogs userDialogs, ISettings _, IPermissions permissions) : base(adapter)
         {
@@ -66,7 +66,7 @@ namespace BLE.Client.ViewModels
         {
             if (!IsConnected)
             {
-                (IsConnected, boardBluetoothDevice) = await ConnectToDevice();
+                (IsConnected, BoardBluetoothDevice) = await ConnectToDevice();
             }
 
             if (!IsConnected)
@@ -92,7 +92,7 @@ namespace BLE.Client.ViewModels
         { 
             if (!IsConnected)
             {
-                (IsConnected, boardBluetoothDevice) = await ConnectToDevice(); 
+                (IsConnected, BoardBluetoothDevice) = await ConnectToDevice(); 
             } 
 
             if (!IsConnected)
@@ -102,7 +102,7 @@ namespace BLE.Client.ViewModels
             
             await Mvx.IoCProvider.Resolve<IMvxNavigationService>()
                 .Navigate<DeviceCommunicationViewModel, MvxBundle>(
-                new MvxBundle(new Dictionary<string, string> { { DeviceIdKey, boardBluetoothDevice.Id.ToString() } }));
+                new MvxBundle(new Dictionary<string, string> { { DeviceIdKey, BoardBluetoothDevice.Id.ToString() } }));
         }
 
         /// <summary>
