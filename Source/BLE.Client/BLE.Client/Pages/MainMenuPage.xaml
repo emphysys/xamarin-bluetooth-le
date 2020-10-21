@@ -4,11 +4,17 @@
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
             xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
+            xmlns:c="clr-namespace:BLE.Client.Converters;assembly=BLE.Client"
             x:Class="BLE.Client.Pages.MainMenuPage"
             Title="Joltz"
             BackgroundColor="DarkGray" 
             >
     <Grid>
+        <Grid.Resources>
+            <ResourceDictionary>
+                <c:ConnectionStatusTitleConverter x:Key="ConnectionStatusTitleConverter"/>
+            </ResourceDictionary>
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -26,10 +32,13 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Frame Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" CornerRadius="7" Margin="15, 15, 15, 30" BackgroundColor="LightGray" Padding="10,20" HasShadow="True">
-            <Label Text="What would you like to do?" HorizontalOptions="Start" FontSize="Title" TextColor="DarkSlateGray"/>
+            <StackLayout Orientation="Vertical">
+                <Label Text="What would you like to do?" HorizontalOptions="Start" VerticalOptions="Center" FontSize="Title" TextColor="DarkSlateGray"/>
+                <Label Text="{Binding IsConnected, Converter={StaticResource ConnectionStatusTitleConverter}}"/>
+            </StackLayout>
         </Frame>
         <Frame Grid.Row="1" Grid.Column="1" CornerRadius="7" Margin="2" BackgroundColor="Gray" Padding="3" HasShadow="True">
-            <Button Text="Audio Instructions" TextColor="DarkSlateGray" Command="{Binding AudioInstructionsCommand}"/>
+            <Button Text="Start AED Sim" TextColor="DarkSlateGray" Command="{Binding AudioInstructionsCommand}"/>
         </Frame>
         <Frame Grid.Row="3" Grid.Column="1" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="Gray" Padding="3" HasShadow="True">
             <Button Text="Select Language" TextColor="DarkSlateGray" Command="{Binding SelectLanguageCommand}"/>
@@ -38,7 +47,7 @@
             <Button Text="Video Training" TextColor="DarkSlateGray" Command="{Binding VideoTrainingCommand}"/>
         </Frame>
         <Frame Grid.Row="7" Grid.Column="1" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="Gray" Padding="3" HasShadow="True">
-            <Button Text="Connect to Hardware" TextColor="DarkSlateGray" Command="{Binding ConnectCommand}"/>
+            <Button Text="View ECG Data" TextColor="DarkSlateGray" Command="{Binding ConnectCommand}"/>
         </Frame>
     </Grid>
 </views:MvxContentPage>

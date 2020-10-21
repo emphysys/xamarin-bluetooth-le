@@ -41,13 +41,18 @@
                     </Grid>
                 </Frame>
                 <Frame Grid.Row="2" CornerRadius="7" Margin="2,5,2,5" BackgroundColor="Transparent" Padding="5,5,5,5" HasShadow="False">
-                    <StackLayout HorizontalOptions="FillAndExpand" Orientation="Horizontal">
-                        <Button x:Name="ButtonTraceHeartbeat" Padding="20,3,20,3" HorizontalOptions="Center"  Text="Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StartTrace}"/>
-                        <Button x:Name="ButtonStopTrace" Padding="20,3,20,3" HorizontalOptions="Center" Text="Stop Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StopTrace}"/>
-                        <Button x:Name="ButtonClearResponseLabel" Padding="20,3,20,3" HorizontalOptions="Center" Text="Clear" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding ClearPlot}"/>
-                        <Button x:Name="ButtonUploadData" Padding="20,3,20,3" HorizontalOptions="Center" Text="Send..." TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding SendDataToServer}"
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" x:Name="ButtonTraceHeartbeat" Padding="20,3,20,3" FontSize="Small" Text="{Binding StartStopTraceText}" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StartTrace}"/>
+                        <!--<Button Grid.Column="1" x:Name="ButtonStopTrace" Padding="20,3,20,3" HorizontalOptions="Center" FontSize="Small" Text="Stop Trace" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding StopTrace}"/>-->
+                        <Button Grid.Column="1" x:Name="ButtonClearResponseLabel" Padding="20,3,20,3" FontSize="Small" Text="Clear" TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding ClearPlot}"/>
+                        <Button Grid.Column="2" x:Name="ButtonUploadData" Padding="20,3,20,3" FontSize="Small" Text="Send..." TextColor="GhostWhite" BackgroundColor="SteelBlue" Command="{Binding SendDataToServer}"
                                 IsEnabled="{Binding EnableSendToServer}" IsVisible="{Binding EnableSendToServer}"/>
-                    </StackLayout>
+                    </Grid>
                 </Frame>
                 <Frame Grid.Row="3" CornerRadius="20" Padding="3,3,3,3" HasShadow="False" BackgroundColor="LightGray">
                     <StackLayout >

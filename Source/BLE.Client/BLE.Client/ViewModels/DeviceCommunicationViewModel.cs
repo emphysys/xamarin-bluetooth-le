@@ -141,13 +141,18 @@ namespace BLE.Client.ViewModels
             }
         }
 
+        public string StartStopTraceText
+        {
+            get => IsTracing ? "Stop" : "Start";
+        }
+
         #endregion
 
         #region METHODS
         // These are referenced as button commands in the xaml
         //public MvxCommand StartTrace => new MvxCommand(Test);
-        public MvxCommand StartTrace => new MvxCommand(StartTracing);
-        public MvxCommand StopTrace => new MvxCommand(StopTracing);
+        public MvxCommand StartTrace => new MvxCommand(ToggleTracing);
+        //public MvxCommand StopTrace => new MvxCommand(StopTracing);
         public MvxCommand SendCommand => new MvxCommand(async() => await SendCommandToBoard(Command));
         public MvxCommand ClearPlot => new MvxCommand(ClearPlotData);
         public MvxCommand ClearText => new MvxCommand(ClearTextData);
@@ -202,7 +207,7 @@ namespace BLE.Client.ViewModels
         {
             Command = "ls";
             PlotWindowRange = "5";
-            TraceVariable = "/ecgspi/ecg_ll_norm";
+            TraceVariable = "/ecgspi/ecg_ll_norm"; 
             state = ResponseState.WaitForID;
 
             PlotModel = InitPlotModel();
@@ -324,10 +329,25 @@ namespace BLE.Client.ViewModels
         /// </summary>
         private CancellationTokenSource cleanPlotTokenSource;
 
+        private bool _IsTracing;
+        private bool IsTracing { 
+            get => _IsTracing;
+            set
+            {
+                _IsTracing = value; 
+                RaisePropertyChanged(nameof(StartStopTraceText));
+            }
+        }
+
+        public async void ToggleTracing()
+        {
+            if (IsTracing) { await StopTracing(); } else { await StartTracing(); }
+        }
+
         /// <summary>
         /// Begins tracing the variable specified in local property *TraceVariable*.
         /// </summary>
-        public async void StartTracing()
+        public async Task StartTracing()
         {
             EnableSendToServer = false;
 
@@ -361,7 +381,43 @@ namespace BLE.Client.ViewModels
             thread.Start(cleanPlotTokenSource.Token);
 
             // Record the current time as the 0th trace packet time 
-            traceTime = DateTime.Now; 
+            traceTime = DateTime.Now;
+            IsTracing = true;
+        }
+
+        /// <summary>
+        /// Cancels and clears all tracing instructions.
+        /// </summary>
+        public async Task StopTracing()
+        {
+            EnableSendToServer = true;
+
+            cleanPlotTokenSource.Cancel();
+
+            string[] cmds =
+            {
+                "trace_stop",
+                "trace_clear"
+            };
+
+            PlotModel.Title = "Press 'Trace' to Plot Trace Variable";
+            PlotModel.TitleColor = OxyColors.DarkRed;
+            PlotSeries.Color = OxyColors.DarkRed;
+
+            var token = new CancellationToken();
+            foreach (var cmd in cmds)
+            {
+                var packets = GetCommandPackets(cmd);
+                foreach (var packet in packets)
+                {
+                    await rx.WriteAsync(packet, token);
+                }
+            }
+
+            // Copy any remaining points in the plot
+            plotPoints.AddRange(PlotSeries.Points);
+
+            IsTracing = false;
         }
 
         /// <summary>
@@ -421,39 +477,6 @@ namespace BLE.Client.ViewModels
 
                 Thread.Sleep(CLEAN_PLOT_SLEEP_DURATION_MS);
             }
-        }
-
-        /// <summary>
-        /// Cancels and clears all tracing instructions.
-        /// </summary>
-        public async void StopTracing()
-        {
-            EnableSendToServer = true;
-
-            cleanPlotTokenSource.Cancel();
-
-            string[] cmds =
-            {
-                "trace_stop",
-                "trace_clear"
-            };
-
-            PlotModel.Title = "Press 'Trace' to Plot Trace Variable";
-            PlotModel.TitleColor = OxyColors.DarkRed;
-            PlotSeries.Color = OxyColors.DarkRed;
-
-            var token = new CancellationToken();
-            foreach (var cmd in cmds)
-            {
-                var packets = GetCommandPackets(cmd);
-                foreach (var packet in packets)
-                {
-                    await rx.WriteAsync(packet, token);
-                }
-            }
-
-            // Copy any remaining points in the plot
-            plotPoints.AddRange(PlotSeries.Points); 
         }
 
         /// <summary>

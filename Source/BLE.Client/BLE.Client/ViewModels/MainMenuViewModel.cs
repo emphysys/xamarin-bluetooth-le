@@ -34,12 +34,24 @@ namespace BLE.Client.ViewModels
 
         #endregion
 
+        private bool _IsConnected;
+        public bool IsConnected
+        {
+            get => _IsConnected;
+            set
+            {
+                _IsConnected = value;
+                RaisePropertyChanged();
+            }
+        }
+
         #endregion
 
         private readonly IBluetoothLE bluetoothLe;
         private readonly IUserDialogs userDialogs;
         private readonly IPermissions permissions;
 
+        private IDevice boardBluetoothDevice;
 
         public MainMenuViewModel(IBluetoothLE bluetoothLe, IAdapter adapter, IUserDialogs userDialogs, ISettings _, IPermissions permissions) : base(adapter)
         {
@@ -52,6 +64,17 @@ namespace BLE.Client.ViewModels
 
         private async void AudioInstructions()
         {
+            if (!IsConnected)
+            {
+                (IsConnected, boardBluetoothDevice) = await ConnectToDevice();
+            }
+
+            if (!IsConnected)
+            {
+                return;
+            }
+
+
             await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<AudioInstructionsViewModel, MvxBundle>(null);
         }
 
@@ -66,19 +89,42 @@ namespace BLE.Client.ViewModels
         }
 
         private async void Connect()
+        { 
+            if (!IsConnected)
+            {
+                (IsConnected, boardBluetoothDevice) = await ConnectToDevice(); 
+            } 
+
+            if (!IsConnected)
+            {
+                return;
+            }
+            
+            await Mvx.IoCProvider.Resolve<IMvxNavigationService>()
+                .Navigate<DeviceCommunicationViewModel, MvxBundle>(
+                new MvxBundle(new Dictionary<string, string> { { DeviceIdKey, boardBluetoothDevice.Id.ToString() } }));
+        }
+
+        /// <summary>
+        /// bool: whether the connection succeeded.
+        /// IDevice: the device. 
+        /// this is a questionable workaround :)
+        /// </summary>
+        /// <returns></returns>
+        private async Task<(bool, IDevice)> ConnectToDevice()
         {
             if (!bluetoothLe.IsOn || bluetoothLe.State != BluetoothState.On)
             {
                 await userDialogs.AlertAsync("Bluetooth is not on! Enable Bluetooth on your phone to proceed.");
-                return;
+                return (false, null);
             }
             if (!await CheckOrRequestConnectPermissions())
             {
-                return;
+                return (false, null);
             }
             if (!await userDialogs.ConfirmAsync($"Connect to Device?"))
             {
-                return;
+                return (false, null);
             }
 
             Adapter.ScanMode = ScanMode.LowLatency;
@@ -104,15 +150,16 @@ namespace BLE.Client.ViewModels
 
                     if (!wasDeviceFound || Adapter.DiscoveredDevices.Count == 0)
                     {
-                        await userDialogs.AlertAsync("Device not found! Reset the board and try again. (If you're on Android, make sure that your " +
-                            "location is on!)");
-                        return;
+                        var message = string.Format("Device not found! Reset the board and try again.{0}",
+                            (Xamarin.Forms.Device.RuntimePlatform == Xamarin.Forms.Device.Android) ? "(Android users: ensure that location services are on!)" : "");
+                        await userDialogs.AlertAsync(message);
+                        return (false, null);
                     }
 
                     if (Adapter.DiscoveredDevices.Count > 1)
                     {
                         await userDialogs.AlertAsync("Two or more devices found... uh oh");
-                        return;
+                        return (false, null);
                     }
 
                     device = Adapter.DiscoveredDevices[0];
@@ -121,7 +168,7 @@ namespace BLE.Client.ViewModels
 
                 await userDialogs.AlertAsync("Connection complete!");
 
-                await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<DeviceCommunicationViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string> { { DeviceIdKey, device.Id.ToString() } }));
+                return (true, device);
             }
             catch (DeviceConnectionException e)
             {
@@ -134,10 +181,13 @@ namespace BLE.Client.ViewModels
                 {
                     await userDialogs.AlertAsync($"Unknown error occurred: {e.Message}.");
                 }
+
+                return (false, null);
             }
             catch (Exception e)
             {
                 await userDialogs.AlertAsync($"Unknown error occurred: {e.Message}.");
+                return (false, null);
             }
         }
 
