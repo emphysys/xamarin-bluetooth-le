@@ -64,15 +64,15 @@ namespace BLE.Client.ViewModels
 
         private async void AudioInstructions()
         {
-            if (!IsConnected)
-            {
-                (IsConnected, BoardBluetoothDevice) = await ConnectToDevice();
-            }
+            //if (!IsConnected)
+            //{
+            //    (IsConnected, BoardBluetoothDevice) = await ConnectToDevice();
+            //}
 
-            if (!IsConnected)
-            {
-                return;
-            }
+            //if (!IsConnected)
+            //{
+            //    return;
+            //}
 
 
             await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<AudioInstructionsViewModel, MvxBundle>(null);

@@ -32,7 +32,7 @@
         </Frame>
         <Frame Grid.Row="1" CornerRadius="7" Margin="2,5,2,5" BackgroundColor="SteelBlue" Padding="5" HasShadow="False">
             <StackLayout Orientation="Vertical">
-                <Label Text="Azure Upload Container Name:"  BackgroundColor="Transparent" TextColor="GhostWhite" VerticalTextAlignment="Center"/>
+                <Label Text="Patient Folder Name:"  BackgroundColor="Transparent" TextColor="GhostWhite" VerticalTextAlignment="Center"/>
                 <Entry Text="{Binding AzureContainerName}" IsSpellCheckEnabled="False" Keyboard="Plain" BackgroundColor="LightGray" TextColor="DarkSlateGray"/>
             </StackLayout>
         </Frame>

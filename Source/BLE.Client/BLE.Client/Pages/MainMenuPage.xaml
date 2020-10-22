@@ -44,7 +44,7 @@
             <Button Text="Select Language" TextColor="DarkSlateGray" Command="{Binding SelectLanguageCommand}"/>
         </Frame>
         <Frame Grid.Row="5" Grid.Column="1" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="Gray" Padding="3" HasShadow="True">
-            <Button Text="Video Training" TextColor="DarkSlateGray" Command="{Binding VideoTrainingCommand}"/>
+            <Button Text="Emergency Training" TextColor="DarkSlateGray" Command="{Binding VideoTrainingCommand}"/>
         </Frame>
         <Frame Grid.Row="7" Grid.Column="1" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="Gray" Padding="3" HasShadow="True">
             <Button Text="View ECG Data" TextColor="DarkSlateGray" Command="{Binding ConnectCommand}"/>

@@ -37,8 +37,8 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <ImageButton Grid.Column="1" Source="audioplayer_previous.png" Command="{Binding AudioPreviousCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
-                <ImageButton Grid.Column="2" Source="{Binding ImageButtonPlayImageSource}" Command="{Binding AudioPlayCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
-                <ImageButton Grid.Column="3" Source="audioplayer_next.png" Command="{Binding AudioNextCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
+                <ImageButton Grid.Column="3" Source="{Binding ImageButtonPlayImageSource}" Command="{Binding AudioPlayCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
+                <!--<ImageButton Grid.Column="3" Source="audioplayer_next.png" Command="{Binding AudioNextCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>-->
             </Grid>  
         </Frame>
     </Grid>

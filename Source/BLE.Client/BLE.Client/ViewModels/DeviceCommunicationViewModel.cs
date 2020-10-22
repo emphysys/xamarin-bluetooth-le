@@ -17,7 +17,6 @@ using System.Runtime.InteropServices;
 using Xamarin.Forms.Internals;
 using System.IO;
 using Xamarin.Essentials;
-using System.Reflection;
 
 namespace BLE.Client.ViewModels
 {
@@ -227,7 +226,7 @@ namespace BLE.Client.ViewModels
         {
             var model = new PlotModel()
             {
-                Title = "Press 'Trace' to Plot Trace Variable",
+                Title = "Press 'Start' to Begin Plotting",
                 TitleColor = OxyColors.DarkRed
             };
 
@@ -358,7 +357,7 @@ namespace BLE.Client.ViewModels
                 "trace_start"
             };
 
-            PlotModel.Title = traceCommand;
+            PlotModel.Title = "ECG Signal";
             PlotModel.TitleColor = OxyColors.ForestGreen;
             PlotSeries.Color = OxyColors.ForestGreen;
 
@@ -400,7 +399,7 @@ namespace BLE.Client.ViewModels
                 "trace_clear"
             };
 
-            PlotModel.Title = "Press 'Trace' to Plot Trace Variable";
+            PlotModel.Title = "Press 'Start' to Begin Plotting";
             PlotModel.TitleColor = OxyColors.DarkRed;
             PlotSeries.Color = OxyColors.DarkRed;
 
@@ -660,7 +659,7 @@ namespace BLE.Client.ViewModels
 
                                     break;
                                 case PACKETID_PACKING:
-                                    var dfasd = Thread.CurrentThread.ManagedThreadId;
+                                    // async whining here... ignore it :)
                                     MainThread.BeginInvokeOnMainThread(() => SendCommandToBoard("set /trace/wait_for_packing 0"));
                                     break;
                                 default:

@@ -15,12 +15,12 @@
         <ScrollView>
             <Grid Padding="5,5,5,5">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"></RowDefinition>
+                    <!--<RowDefinition Height="Auto"></RowDefinition>-->
                     <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
                 </Grid.RowDefinitions>
-                <Frame Grid.Row="0" CornerRadius="7" Margin="2,5,2,2" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
+                <!--<Frame Grid.Row="0" CornerRadius="7" Margin="2,5,2,2" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -29,8 +29,8 @@
                         <Label Grid.Column="0" Text="Trace Variable:" BackgroundColor="Transparent" TextColor="GhostWhite" VerticalTextAlignment="Center"/>
                         <Entry Grid.Column="1" IsSpellCheckEnabled="False" Keyboard="Plain" BackgroundColor="LightGray" TextColor="DarkSlateGray" Text="{Binding TraceVariable}"/>
                     </Grid>
-                </Frame>
-                <Frame Grid.Row="1" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
+                </Frame>-->
+                <Frame Grid.Row="0" CornerRadius="7" Margin="2,2,2,2" BackgroundColor="SteelBlue" Padding="5,5,5,5" HasShadow="False">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -40,7 +40,7 @@
                         <Entry Grid.Column="1" x:Name="NumPacketsToRead" IsSpellCheckEnabled="False" Keyboard="Numeric" BackgroundColor="LightGray" TextColor="DarkSlateGray" Text="{Binding PlotWindowRange}"/>
                     </Grid>
                 </Frame>
-                <Frame Grid.Row="2" CornerRadius="7" Margin="2,5,2,5" BackgroundColor="Transparent" Padding="5,5,5,5" HasShadow="False">
+                <Frame Grid.Row="1" CornerRadius="7" Margin="2,5,2,5" BackgroundColor="Transparent" Padding="5,5,5,5" HasShadow="False">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -54,7 +54,7 @@
                                 IsEnabled="{Binding EnableSendToServer}" IsVisible="{Binding EnableSendToServer}"/>
                     </Grid>
                 </Frame>
-                <Frame Grid.Row="3" CornerRadius="20" Padding="3,3,3,3" HasShadow="False" BackgroundColor="LightGray">
+                <Frame Grid.Row="2" CornerRadius="20" Padding="3,3,3,3" HasShadow="False" BackgroundColor="LightGray">
                     <StackLayout >
                         <oxy:PlotView Model="{Binding PlotModel}" VerticalOptions="FillAndExpand"  HorizontalOptions="FillAndExpand" 
                                     ScaleX="{Binding PlotViewScaleX}" ScaleY="{Binding PlotViewScaleY}"/>

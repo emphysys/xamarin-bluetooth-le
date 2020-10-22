@@ -87,6 +87,7 @@ namespace BLE.Client.ViewModels
     {
         private const string IMAGESOURCE_PLAY = "audioplayer_play.png";
         private const string IMAGESOURCE_STOP = "audioplayer_stop.png";
+        private const string IMAGESOURCE_NEXT = "audioplayer_next.png";
 
         public static AudioPlaybackLanguage PlaybackLanguage { get; set; }
 
@@ -94,9 +95,9 @@ namespace BLE.Client.ViewModels
 
         #region COMMANDS
 
-        public MvxCommand AudioPreviousCommand => new MvxCommand(AudioPrevious);
+        public MvxCommand AudioPreviousCommand => new MvxCommand(PlayPreviousClip);
         public MvxCommand AudioPlayCommand => new MvxCommand(MoveToNextClipFromUserInput);
-        public MvxCommand AudioNextCommand => new MvxCommand(AudioNext);
+        //public MvxCommand AudioNextCommand => new MvxCommand(AudioNext);
         public MvxCommand SelectLanguageCommand => new MvxCommand(SelectLanguage);
 
         #endregion
@@ -155,7 +156,7 @@ namespace BLE.Client.ViewModels
         /// </summary>
         private IDevice BoardBluetoothDevice => MainMenuViewModel.BoardBluetoothDevice;
 
-        private readonly CancellationTokenSource audioLoopTokenSource;
+        private CancellationTokenSource audioLoopTokenSource;
         private readonly Thread audioLoopThread;
 
         public AudioInstructionsViewModel(IAdapter adapter) : base(adapter)
@@ -165,58 +166,85 @@ namespace BLE.Client.ViewModels
 
             audioLoopTokenSource = new CancellationTokenSource();
             audioLoopThread = new Thread(AudioLoopThreadEntry);
-            audioLoopThread.Start(audioLoopTokenSource.Token);
+            audioLoopThread.Start();
         }
 
 
 
-        private readonly Stack<AudioInstruction> previousInstructions = new Stack<AudioInstruction>();
-
         private AudioInstruction _tempCurrentInstruction;
-         
+
         private readonly ManualResetEventSlim playCV = new ManualResetEventSlim(false);
 
-        private void AudioLoopThreadEntry(object tokenObject)
-        {
-            var token = (CancellationToken)tokenObject; 
+        // This is very bad design lmao
+        private int rewind = 0;
 
+        private void AudioLoopThreadEntry()
+        {  
             // Check token after each step and quick-quit if canceled
-            while (!token.IsCancellationRequested)
+            while (true)
             {
-                var instruction = AwaitResponseFromBoard_AudioLoopThread(token);
+                if (rewind > 0)
+                {  
+                    InformBoardOfRewind_AudioLoopThread();
+                    rewind = 0;
 
-                if (token.IsCancellationRequested) return;
+                    // Reset the token 
+                    audioLoopTokenSource = new CancellationTokenSource();
+                }
 
-                playCV.Reset();
-                PlayClip_AudioLoopThread(instruction, token);
+                var token = audioLoopTokenSource.Token;
+                AudioLoopIteration_AudioLoopThread(token);
 
-                if (token.IsCancellationRequested) return;
-
-                playCV.Reset();
-                WaitForUserAcknowledgement_AudioLoopThread(token);
+                if (token.IsCancellationRequested && rewind == 0)
+                {
+                    return;
+                }
             }
+        }
+
+        private void InformBoardOfRewind_AudioLoopThread()
+        {
+            // Do nothing for now
+            Thread.Sleep(TimeSpan.FromMilliseconds(500));
+            _tempCurrentInstruction -= rewind;
+
+            if (_tempCurrentInstruction < 0)
+            {
+                _tempCurrentInstruction = 0;
+            }
+        }
+
+        private void AudioLoopIteration_AudioLoopThread(CancellationToken token)
+        {
+            var instruction = AwaitResponseFromBoard_AudioLoopThread(token); 
+
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            playCV.Reset();
+            PlayClip_AudioLoopThread(instruction, token);
+
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            playCV.Reset();
+            WaitForUserAcknowledgement_AudioLoopThread(token);
         }
 
         private AudioInstruction AwaitResponseFromBoard_AudioLoopThread(CancellationToken token)
         {
             // Mock board behavior for now 
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+
             if (token.IsCancellationRequested) return default;
 
-            try
-            { 
-                Task.Delay(TimeSpan.FromSeconds(1), token); 
-            }
-            catch (TaskCanceledException e)
-            {
-                // If the same token threw, then the task was canceled
-                if (!e.CancellationToken.Equals(token))
-                {
-                    throw e;
-                } 
-            }
-
             AudioInstruction toReturn = _tempCurrentInstruction;
-            _tempCurrentInstruction = (AudioInstruction)((int)_tempCurrentInstruction + 1);
+            ++_tempCurrentInstruction;
+            Console.WriteLine("<<< ++");
             return toReturn;
         }
 
@@ -224,7 +252,7 @@ namespace BLE.Client.ViewModels
         {
             ImageButtonPlayImageSource = IMAGESOURCE_STOP;
             audioPlayer.PlayAudioFile(instruction.GetClipFileName(), token, PlayClip_ClipFinished_AudioLoopThread);
-             
+
             if (!token.IsCancellationRequested)
             {
                 try
@@ -244,13 +272,13 @@ namespace BLE.Client.ViewModels
 
         private void PlayClip_ClipFinished_AudioLoopThread()
         {
-            ImageButtonPlayImageSource = IMAGESOURCE_PLAY;
-             
-            playCV.Set(); 
+            ImageButtonPlayImageSource = IMAGESOURCE_NEXT;
+
+            playCV.Set();
         }
 
         private void WaitForUserAcknowledgement_AudioLoopThread(CancellationToken token)
-        { 
+        {
             if (!token.IsCancellationRequested)
             {
                 try
@@ -269,8 +297,8 @@ namespace BLE.Client.ViewModels
         }
 
         private void MoveToNextClipFromUserInput()
-        { 
-            playCV.Set(); 
+        {
+            playCV.Set();
         }
 
         public override void ViewDisappearing()
@@ -281,40 +309,18 @@ namespace BLE.Client.ViewModels
         }
 
 
-        private void AudioPrevious()
-        {
-            audioPlayer.StopAudio(); 
-
-            CurrentAudioInstructionFile = CurrentAudioInstructionFile.GetPreviousClipOrCurrent();
-        }
-
-        private void AudioPlay()
-        {
-            if (IsAudioPlaying)
-            {
-                ImageButtonPlayImageSource = IMAGESOURCE_PLAY;
-                audioPlayer.StopAudio(); 
-            }
-            else
-            {
-                ImageButtonPlayImageSource = IMAGESOURCE_STOP;
-                //audioPlayer.PlayAudioFile(CurrentAudioInstructionFile.GetClipFileName(), () => ImageButtonPlayImageSource = IMAGESOURCE_PLAY); 
-            }
-        }
-
-        private void AudioNext()
-        {
-            audioPlayer.StopAudio(); 
-
-            CurrentAudioInstructionFile = CurrentAudioInstructionFile.GetNextClipOrCurrent();
-        }
-
         private async void SelectLanguage()
         {
             await Mvx.IoCProvider.Resolve<IMvxNavigationService>().Navigate<SelectLanguageViewModel, MvxBundle>(new MvxBundle(new Dictionary<string, string>()));
         }
-          
+
+        private void PlayPreviousClip()
+        {
+            ++rewind;
+            audioLoopTokenSource.Cancel();
+            playCV.Set();
+            Console.WriteLine("<<< |<l");
+        }
+
     }
-
-
 }

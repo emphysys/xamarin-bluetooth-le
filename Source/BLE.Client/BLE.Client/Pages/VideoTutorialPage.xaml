@@ -6,7 +6,7 @@
             xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
             xmlns:o="clr-namespace:Octane.Xamarin.Forms.VideoPlayer;assembly=Octane.Xamarin.Forms.VideoPlayer"
             x:Class="BLE.Client.Pages.VideoTutorialPage"
-            Title="Audio Instructions"
+            Title="Emergency Training"
             BackgroundColor="DarkGray"
             >
     <Grid>
