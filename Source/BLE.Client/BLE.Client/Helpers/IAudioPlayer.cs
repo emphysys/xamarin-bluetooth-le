@@ -20,8 +20,14 @@ namespace BLE.Client
         /// <param name="audioFinishedFunc">An optional function to call when audio is finished playing.</param>
         void PlayAudioFile(string fileName, CancellationToken token, AudioFinishedDelegate audioFinishedFunc = null);
 
+        void PauseAudio();
+
+        void ResumePausedAudio();
+
         void StopAudio();
 
         bool IsAudioPlaying { get; }
+
+        bool IsAudioPaused { get; }
     }
 }

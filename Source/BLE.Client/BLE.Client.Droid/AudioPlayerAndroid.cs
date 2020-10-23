@@ -45,7 +45,27 @@ public class AudioPlayerAndroid : IAudioPlayer
         }
     }
 
+    public void PauseAudio()
+    {
+        if (player?.IsPlaying == true)
+        {
+            player.Pause();
+            IsAudioPaused = true;
+        }
+    }
+
+    public void ResumePausedAudio()
+    {
+        if (player != null && IsAudioPaused)
+        {
+            player.Start();
+            IsAudioPaused = false;
+        }
+    }
+
     public bool IsAudioPlaying { get => player?.IsPlaying == true; }
+
+    public bool IsAudioPaused { get; private set; }
 
     #endregion
 

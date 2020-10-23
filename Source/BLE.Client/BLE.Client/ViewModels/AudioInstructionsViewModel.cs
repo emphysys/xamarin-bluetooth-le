@@ -96,7 +96,7 @@ namespace BLE.Client.ViewModels
         #region COMMANDS
 
         public MvxCommand AudioPreviousCommand => new MvxCommand(PlayPreviousClip);
-        public MvxCommand AudioPlayCommand => new MvxCommand(MoveToNextClipFromUserInput);
+        public MvxCommand AudioPlayCommand => new MvxCommand(StopOrForwardButtonPressed);
         //public MvxCommand AudioNextCommand => new MvxCommand(AudioNext);
         public MvxCommand SelectLanguageCommand => new MvxCommand(SelectLanguage);
 
@@ -148,6 +148,7 @@ namespace BLE.Client.ViewModels
         }
 
         private bool IsAudioPlaying { get => audioPlayer.IsAudioPlaying; }
+        private bool IsAudioPaused { get => audioPlayer.IsAudioPaused; }
 
         private readonly IAudioPlayer audioPlayer;
 
@@ -251,6 +252,7 @@ namespace BLE.Client.ViewModels
         private void PlayClip_AudioLoopThread(AudioInstruction instruction, CancellationToken token)
         {
             ImageButtonPlayImageSource = IMAGESOURCE_STOP;
+
             audioPlayer.PlayAudioFile(instruction.GetClipFileName(), token, PlayClip_ClipFinished_AudioLoopThread);
 
             if (!token.IsCancellationRequested)
@@ -294,6 +296,34 @@ namespace BLE.Client.ViewModels
                     }
                 }
             }
+        }
+
+        private void StopOrForwardButtonPressed()
+        {
+            if (IsAudioPlaying)
+            {
+                PauseAudioFromUserInput();
+            }
+            else if (IsAudioPaused)
+            {
+                ResumePausedAudioFromUserInput();
+            }
+            else
+            {
+                MoveToNextClipFromUserInput();
+            }
+        }
+
+        private void PauseAudioFromUserInput()
+        {
+            audioPlayer.PauseAudio();
+            ImageButtonPlayImageSource = IMAGESOURCE_PLAY;
+        }
+
+        private void ResumePausedAudioFromUserInput()
+        {
+            audioPlayer.ResumePausedAudio();
+            ImageButtonPlayImageSource = IMAGESOURCE_STOP;
         }
 
         private void MoveToNextClipFromUserInput()
