@@ -166,7 +166,11 @@ namespace BLE.Client.ViewModels
             audioPlayer = DependencyService.Get<IAudioPlayer>();
 
             audioLoopTokenSource = new CancellationTokenSource();
-            audioLoopThread = new Thread(AudioLoopThreadEntry);
+            audioLoopThread = new Thread(AudioLoopThreadEntry)
+            {
+                Name = "Audio Loop Thread"
+            };
+
             audioLoopThread.Start();
         }
 
