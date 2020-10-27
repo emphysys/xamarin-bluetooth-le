@@ -29,15 +29,16 @@
 
         <Frame Grid.Row="3" CornerRadius="12" Margin="10,0,10,0" BackgroundColor="SteelBlue" Padding="5" HasShadow="False">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                <Grid.ColumnDefinitions> 
                     <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="3*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="3*"/> 
                 </Grid.ColumnDefinitions>
-                <ImageButton Grid.Column="1" Source="audioplayer_previous.png" Command="{Binding AudioPreviousCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
-                <ImageButton Grid.Column="3" Source="{Binding ImageButtonPlayImageSource}" Command="{Binding AudioPlayCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
+                <ImageButton Grid.Column="0" Source="audioplayer_previous.png" Command="{Binding AudioBacktrackCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
+                <ImageButton Grid.Column="1" Source="audioplayer_restart.png" Command="{Binding AudioRewindCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
+                <ImageButton Grid.Column="2" Source="{Binding ImageButtonPlayImageSource}" Command="{Binding AudioPlayPauseCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
+                <ImageButton Grid.Column="3" Source="audioplayer_next.png" Command="{Binding AudioFastForwardCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
                 <!--<ImageButton Grid.Column="3" Source="audioplayer_next.png" Command="{Binding AudioNextCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>-->
             </Grid>  
         </Frame>
