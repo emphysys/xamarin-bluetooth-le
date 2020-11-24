@@ -45,6 +45,11 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidManagedSymbols>true</AndroidManagedSymbols>
+    <AndroidKeyStore>false</AndroidKeyStore>
+    <AotAssemblies>false</AotAssemblies>
+    <EnableLLVM>false</EnableLLVM>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+    <BundleAssemblies>false</BundleAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Android" />
@@ -180,47 +185,47 @@
     <AndroidResource Include="Resources\drawable\audioplayer_stop.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test1_english.wav">
-      <Link>Assets\test1_english.wav</Link>
-    </AndroidAsset>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test1_italian.wav">
-      <Link>Assets\test1_italian.wav</Link>
-    </AndroidAsset>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test2_english.wav">
-      <Link>Assets\test2_english.wav</Link>
-    </AndroidAsset>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test2_italian.wav">
-      <Link>Assets\test2_italian.wav</Link>
-    </AndroidAsset>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test3_english.wav">
-      <Link>Assets\test3_english.wav</Link>
-    </AndroidAsset>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test3_italian.wav">
-      <Link>Assets\test3_italian.wav</Link>
-    </AndroidAsset>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test4_english.wav">
-      <Link>Assets\test4_english.wav</Link>
-    </AndroidAsset>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidAsset Include="..\BLE.Client\Resources\audio\test4_italian.wav">
-      <Link>Assets\test4_italian.wav</Link>
-    </AndroidAsset>
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\audioplayer_restart.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\p01_calm_911_english.wav">
+      <Link>Assets\p01_calm_911_english.wav</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\p01_calm_911_italian.wav">
+      <Link>Assets\p01_calm_911_italian.wav</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\p02_chest_cut_clothing_english.wav">
+      <Link>Assets\p02_chest_cut_clothing_english.wav</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\p02_chest_cut_clothing_italian.wav">
+      <Link>Assets\p02_chest_cut_clothing_italian.wav</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\p03_foil_package_english.wav">
+      <Link>Assets\p03_foil_package_english.wav</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\p03_foil_package_italian.wav">
+      <Link>Assets\p03_foil_package_italian.wav</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\p04_remove_pads_english.wav">
+      <Link>Assets\p04_remove_pads_english.wav</Link>
+    </AndroidAsset>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\BLE.Client\Resources\audio\p04_remove_pads_italian.wav">
+      <Link>Assets\p04_remove_pads_italian.wav</Link>
+    </AndroidAsset>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <ProjectExtensions>

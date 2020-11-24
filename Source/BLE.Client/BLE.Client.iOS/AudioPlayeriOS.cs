@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using AVFoundation;
 using BLE.Client.iOS;
 using Foundation;
@@ -13,23 +14,41 @@ namespace BLE.Client.iOS
         private AVAudioPlayer player;
 
         #region INTERFACE
-         
-        public void PlayAudioFile(string fileName, AudioFinishedDelegate audioFinishedFunc = null)
+          
+        public void StopAudio()
+        {
+            player?.Stop();
+        }
+
+        public void PlayAudioFile(string fileName, CancellationToken token, AudioFinishedDelegate audioFinishedFunc = null)
         {
             var filePath = NSBundle.MainBundle.PathForResource(Path.GetFileNameWithoutExtension(fileName), Path.GetExtension(fileName));
             var url = NSUrl.FromString(filePath);
 
             player = AVAudioPlayer.FromUrl(url);
             player.FinishedPlaying += (a, b) => { player = null; audioFinishedFunc(); };
-            player.Play();
+
+            token.Register(StopAudio);
+
+            if (!token.IsCancellationRequested)
+            {
+                player.Play();
+            }
         }
 
-        public void StopAudio()
+        public void PauseAudio()
         {
-            player?.Stop();
+            player?.Pause();
+        }
+
+        public void ResumePausedAudio()
+        {
+            player?.Play();
         }
 
         public bool IsAudioPlaying => player?.Playing == true;
+
+        public bool IsAudioPaused => player?.CurrentTime > 0;
         #endregion
     }
 }

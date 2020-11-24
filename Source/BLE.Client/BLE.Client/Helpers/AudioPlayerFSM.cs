@@ -9,8 +9,11 @@ namespace BLE.Client
 { 
     public enum AudioInstruction
     {
-        test1, test2, test3, test4
-    } 
+        p01_calm_911,
+        p02_chest_cut_clothing,
+        p03_foil_package,
+        p04_remove_pads
+    }
 
     public struct AudioPlayerFSMBinder
     {
@@ -19,6 +22,9 @@ namespace BLE.Client
 
         public Func<string> imageSourceGet;
         public Action<string> imageSourceSet;
+
+        public Func<bool> isFastForwardEnabledGet;
+        public Action<bool> isFastForwardEnabledSet;
     }
 
     public static class AudioInstructionExtensions
@@ -130,7 +136,7 @@ namespace BLE.Client
         public AudioPlayerFSM(AudioPlayerFSMBinder bindingFuncs)
         {
             viewmodelBinder = bindingFuncs; 
-            CurrentAudioInstruction = AudioInstruction.test1;
+            CurrentAudioInstruction = AudioInstruction.p01_calm_911;
             currentState = State.Entry;
 
             audioLoopTokenSource = new CancellationTokenSource();
@@ -146,8 +152,8 @@ namespace BLE.Client
         }
 
         public void StopAudioLoopThread()
-        {
-            audioLoopTokenSource.Cancel();
+        { 
+            audioLoopTokenSource?.Cancel(); 
         }
 
         private void AudioLoopThread_Entry()
@@ -249,8 +255,7 @@ namespace BLE.Client
             ButtonPlayPause,
             ButtonFastForward
         }
-
-
+         
         private readonly IAudioPlayer audioPlayer;
 
         private State currentState;
@@ -263,12 +268,17 @@ namespace BLE.Client
 
         private readonly AudioInstruction instruction;
 
-        private readonly AudioPlayerFSMBinder viewmodelBinder;
-
+        private readonly AudioPlayerFSMBinder viewmodelBinder; 
 
         private string ImageButtonPlaySource
         { 
             set => viewmodelBinder.imageSourceSet(value);
+        }
+
+        public bool IsFastForwardEnabled
+        {
+            get => viewmodelBinder.isFastForwardEnabledGet();
+            set => viewmodelBinder.isFastForwardEnabledSet(value);
         }
 
 
@@ -280,6 +290,8 @@ namespace BLE.Client
             audioPlayer = DependencyService.Get<IAudioPlayer>();
             currentState = State.Entry;
             inputCV = new ManualResetEventSlim(false);
+
+            IsFastForwardEnabled = false;
         }
 
         internal AudioPlayerFSM.AudioCompleteCycleOption PlayAudio(CancellationToken token)
@@ -353,7 +365,13 @@ namespace BLE.Client
         private void StartAudio(CancellationToken token)
         {
             // When the audio finishes, inject a mock fast-forward request to notify the condition variable
-            audioPlayer.PlayAudioFile(instruction.GetClipFileName(), token, () => ImageButtonPlaySource = AudioInstructionsViewModel.IMAGESOURCE_PLAY);
+            audioPlayer.PlayAudioFile(instruction.GetClipFileName(), token, AudioClipEnded);
+        }
+
+        private void AudioClipEnded()
+        {
+            ImageButtonPlaySource = AudioInstructionsViewModel.IMAGESOURCE_PLAY;
+            IsFastForwardEnabled = true;
         }
 
         private bool AudioStartedAwaitChange(CancellationToken token, out AudioPlayerFSM.AudioCompleteCycleOption maybeOption)

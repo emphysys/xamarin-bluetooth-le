@@ -93,6 +93,17 @@ namespace BLE.Client.ViewModels
             }
         }
 
+        private bool _IsFastForwardEnabled;
+        public bool IsFastForwardEnabled
+        {
+            get => _IsFastForwardEnabled;
+            set
+            {
+                _IsFastForwardEnabled = value;
+                RaisePropertyChanged();
+            }
+        }
+
         #endregion
 
         #endregion
@@ -102,14 +113,17 @@ namespace BLE.Client.ViewModels
 
         public AudioInstructionsViewModel(IAdapter adapter) : base(adapter)
         {
-            CurrentAudioInstructionFile = AudioInstruction.test1; 
+            
+            CurrentAudioInstructionFile = AudioInstruction.p01_calm_911;
 
             AudioPlayerFSMBinder binder = new AudioPlayerFSMBinder
             {
                 currentAudioInstructionGet = () => CurrentAudioInstructionFile,
                 currentAudioInstructionSet = (i) => CurrentAudioInstructionFile = i,
                 imageSourceGet = () => ImageButtonPlayImageSource,
-                imageSourceSet = (s) => ImageButtonPlayImageSource = s
+                imageSourceSet = (s) => ImageButtonPlayImageSource = s, 
+                isFastForwardEnabledGet = () => IsFastForwardEnabled,
+                isFastForwardEnabledSet = (e) => IsFastForwardEnabled = e
             };
 
             fsm = new AudioPlayerFSM(binder);
@@ -291,7 +305,7 @@ namespace BLE.Client.ViewModels
         {
             base.ViewDisappearing();
 
-            fsm.StopAudioLoopThread();
+            fsm?.StopAudioLoopThread();
         }
 
     }

@@ -194,23 +194,6 @@ namespace BLE.Client.ViewModels
         private bool DeviceConnectionPredicate(IDevice dev)
         { 
             return (dev.Name?.Equals("EMPBM")).GetValueOrDefault(false);
-            //Console.WriteLine($">>> {dev.Id}"); 
-            //if (dev.Id.Equals(Guid.Parse("00000000-0000-0000-0000-80e126082948")))
-            //{
-            //    //var asdf = Task.Run(() => Adapter.ConnectToDeviceAsync(dev));
-            //    //asdf.Wait();
-            //    var na = dev.Name;
-            //}
-             
-            ////var task = dev.GetServicesAsync();
-            ////Task.WaitAll(task);
-            //var task = Task.Run(() => dev.GetServicesAsync());
-            //task.Wait(); 
-
-            //var services = task.Result; //services.ForEach(s => Console.WriteLine($">>> {s.Id}"));
-            //return services.Any((s) => s.Id.Equals(a));
-            //(IDevice d) => d.Id.ToString().Split('-').Last().Contains("80e12608")
-            //return (await dev.GetServicesAsync()).Any((s) => s.Id.Equals(a));
         }
 
         /// <summary>

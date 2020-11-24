@@ -25,9 +25,8 @@ public class AudioPlayerAndroid : IAudioPlayer
 
         var fd = Android.App.Application.Context.Assets.OpenFd(fileName); 
         player.SetDataSource(fd.FileDescriptor, fd.StartOffset, fd.Length);
-
-        if (token.IsCancellationRequested) return; 
-        token.Register(() => player.Stop());
+         
+        token.Register(StopAudio);
 
         if (!token.IsCancellationRequested)
         {

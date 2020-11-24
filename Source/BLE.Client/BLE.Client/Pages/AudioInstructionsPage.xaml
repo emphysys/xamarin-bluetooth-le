@@ -4,6 +4,7 @@
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
             xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client"
+            xmlns:c="clr-namespace:BLE.Client.Converters"
             x:Class="BLE.Client.Pages.AudioInstructionsPage"
             Title="Audio Instructions"
             BackgroundColor="DarkGray" 
@@ -11,6 +12,11 @@
     <views:MvxContentPage.ToolbarItems> 
         <ToolbarItem Order="Secondary" Text="Select Language..." Command="{Binding SelectLanguageCommand}"/>
     </views:MvxContentPage.ToolbarItems>
+    <views:MvxContentPage.Resources>
+        <ResourceDictionary>
+            <c:InverseBooleanValueConverter x:Key="InverseBooleanConverter"/>
+        </ResourceDictionary>
+    </views:MvxContentPage.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -32,13 +38,15 @@
                 <Grid.ColumnDefinitions> 
                     <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="3*"/>
-                    <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="3*"/> 
                 </Grid.ColumnDefinitions>
                 <ImageButton Grid.Column="0" Source="audioplayer_previous.png" Command="{Binding AudioBacktrackCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
                 <ImageButton Grid.Column="1" Source="audioplayer_restart.png" Command="{Binding AudioRewindCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
-                <ImageButton Grid.Column="2" Source="{Binding ImageButtonPlayImageSource}" Command="{Binding AudioPlayPauseCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
-                <ImageButton Grid.Column="3" Source="audioplayer_next.png" Command="{Binding AudioFastForwardCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>
+                <ImageButton Grid.Column="2" Source="{Binding ImageButtonPlayImageSource}" Command="{Binding AudioPlayPauseCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"
+                             IsEnabled="{Binding IsFastForwardEnabled, Converter={StaticResource InverseBooleanConverter}}"
+                             IsVisible="{Binding IsFastForwardEnabled, Converter={StaticResource InverseBooleanConverter}}"/>
+                <ImageButton Grid.Column="2" Source="audioplayer_next.png" Command="{Binding AudioFastForwardCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"
+                             IsEnabled="{Binding IsFastForwardEnabled}" IsVisible="{Binding IsFastForwardEnabled}"/>
                 <!--<ImageButton Grid.Column="3" Source="audioplayer_next.png" Command="{Binding AudioNextCommand}" Aspect="AspectFit" CornerRadius="5" BackgroundColor="Transparent"/>-->
             </Grid>  
         </Frame>

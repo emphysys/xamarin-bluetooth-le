@@ -206,7 +206,7 @@ namespace BLE.Client.ViewModels
         {
             Command = "ls";
             PlotWindowRange = "5";
-            TraceVariable = "/ecgspi/ecg_ll_norm"; 
+            TraceVariable = "/ecgspi/ecg_ll_norm";
             state = ResponseState.WaitForID;
 
             PlotModel = InitPlotModel();
