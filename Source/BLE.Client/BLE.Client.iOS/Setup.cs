@@ -22,13 +22,15 @@ namespace BLE.Client.iOS
             return new BleMvxApplication();
         }
 
-        protected override void InitializeIoC()
+        protected override MvvmCross.IoC.IMvxIoCProvider InitializeIoC()
         {
-            base.InitializeIoC();
+            var ret = base.InitializeIoC();
 
             Mvx.IoCProvider.RegisterSingleton(() => UserDialogs.Instance);
             Mvx.IoCProvider.RegisterSingleton(() => CrossSettings.Current);
-            Mvx.IoCProvider.RegisterSingleton(() => CrossPermissions.Current); 
+            Mvx.IoCProvider.RegisterSingleton(() => CrossPermissions.Current);
+
+            return ret;
         }
 
         protected override Xamarin.Forms.Application CreateFormsApplication()

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Acr.UserDialogs;
-using Android.Content;
 using MvvmCross.ViewModels;
 using MvvmCross;
 using MvvmCross.Forms.Platforms.Android.Core;
@@ -16,6 +15,7 @@ namespace BLE.Client.Droid
         protected override IMvxApplication CreateApp()
         {
             OxyPlot.Xamarin.Forms.Platform.Android.PlotViewRenderer.Init();
+            Mvx.IoCProvider.RegisterSingleton(() => UserDialogs.Instance);
             return base.CreateApp();
         }
 
@@ -24,13 +24,15 @@ namespace BLE.Client.Droid
             return new List<Assembly>(base.GetViewAssemblies().Union(new[] { typeof(BleMvxFormsApp).GetTypeInfo().Assembly }));
         }
 
-        protected override void InitializeIoC()
+        protected override MvvmCross.IoC.IMvxIoCProvider InitializeIoC()
         {
-            base.InitializeIoC();
+            var ret = base.InitializeIoC();
 
             Mvx.IoCProvider.RegisterSingleton(() => UserDialogs.Instance);
             Mvx.IoCProvider.RegisterSingleton(() => CrossSettings.Current);
             Mvx.IoCProvider.RegisterSingleton(() => CrossPermissions.Current);
+
+            return ret;
         }
     }
 }

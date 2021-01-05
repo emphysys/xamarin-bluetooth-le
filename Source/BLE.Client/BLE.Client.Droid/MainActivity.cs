@@ -10,6 +10,7 @@ using MvvmCross.Forms.Platforms.Android.Views;
 using Octane.Xamarin.Forms.VideoPlayer.Android;
 using Plugin.CurrentActivity;
 using Plugin.Permissions;
+using emphysys.joltz.demo;
 
 namespace BLE.Client.Droid
 {

@@ -53,14 +53,14 @@ namespace BLE.Client.ViewModels
 
         public static IDevice BoardBluetoothDevice { get; private set; }
 
-        public MainMenuViewModel(IBluetoothLE bluetoothLe, IAdapter adapter, IUserDialogs userDialogs, ISettings _, IPermissions permissions) : base(adapter)
+        public MainMenuViewModel(IBluetoothLE bluetoothLe, IAdapter adapter, IUserDialogs userDialogs = null, ISettings _ = null, IPermissions permissions = null) : base(adapter)
         {
             this.bluetoothLe = bluetoothLe;
             this.userDialogs = userDialogs;
             this.permissions = permissions;
 
             Adapter.DeviceDiscovered += Adapter_DeviceDiscovered;
-        }
+        } 
 
         private async void AudioInstructions()
         {
@@ -231,6 +231,6 @@ namespace BLE.Client.ViewModels
             }
 
             return true;
-        }
+        } 
     }
 }

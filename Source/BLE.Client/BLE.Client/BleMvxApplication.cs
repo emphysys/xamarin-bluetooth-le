@@ -1,4 +1,5 @@
 ﻿using System;
+using Acr.UserDialogs;
 using BLE.Client.ViewModels;
 using MvvmCross;
 using MvvmCross.Forms.Core;
@@ -6,6 +7,7 @@ using MvvmCross.IoC;
 using MvvmCross.Localization;
 using MvvmCross.ViewModels;
 using Xamarin.Forms;
+using Plugin.Settings.Abstractions;
 
 namespace BLE.Client
 {
@@ -18,6 +20,9 @@ namespace BLE.Client
                 .AsInterfaces()
                 .RegisterAsLazySingleton();
 
+
+            Mvx.IoCProvider.RegisterSingleton(() => Plugin.Settings.CrossSettings.Current);
+            Mvx.IoCProvider.RegisterSingleton(() => Plugin.Permissions.CrossPermissions.Current);
             RegisterAppStart<MainMenuViewModel>();
         }
     }

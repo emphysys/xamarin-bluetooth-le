@@ -6,11 +6,11 @@ using Android.App;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("BLE.Client.Droid")]
+[assembly: AssemblyTitle("Emphysys.Joltz.Demo")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("BLE.Client.Droid")]
+[assembly: AssemblyProduct("Emphysys.Joltz.Demo")]
 [assembly: AssemblyCopyright("Copyright �  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

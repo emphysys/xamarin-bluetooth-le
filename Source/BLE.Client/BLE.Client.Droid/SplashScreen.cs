@@ -7,6 +7,7 @@ using Xamarin.Forms;
 using MvvmCross.Forms.Platforms.Android.Views;
 using MvvmCross.Platforms.Android.Views;
 using System.Threading.Tasks;
+using emphysys.joltz.demo;
 
 namespace BLE.Client.Droid
 {
