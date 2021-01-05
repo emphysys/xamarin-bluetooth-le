@@ -11,12 +11,6 @@ namespace BLE.Client.Pages
         public SelectLanguagePage()
         {
             InitializeComponent();
-        }
-
-        private void MvxContentPage_Disappearing(object sender, System.EventArgs e)
-        {
-            var language = ViewModel.SelectedLanguage;
-            AudioInstructionsViewModel.PlaybackLanguage = language;
-        }
+        } 
     }
 }

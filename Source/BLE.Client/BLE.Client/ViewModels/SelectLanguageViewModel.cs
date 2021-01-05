@@ -8,18 +8,19 @@ namespace BLE.Client.ViewModels
 {
     public class SelectLanguageViewModel : BaseViewModel
     {
-        private string _SelectedLanguage = AudioPlaybackLanguage.English.ToString();
+        private string _SelectedLanguage = SelectedLanguage.ToString();
         public string SelectedLanguageStr
         {
             get => _SelectedLanguage;
             set
             {
                 _SelectedLanguage = value;
+                SelectedLanguage = (AudioPlaybackLanguage)Enum.Parse(typeof(AudioPlaybackLanguage), SelectedLanguageStr);
                 RaisePropertyChanged();
             }
         }
 
-        public AudioPlaybackLanguage SelectedLanguage { get => (AudioPlaybackLanguage)Enum.Parse(typeof(AudioPlaybackLanguage), SelectedLanguageStr); }
+        public static AudioPlaybackLanguage SelectedLanguage { get; set; } = AudioPlaybackLanguage.English; 
 
         public SelectLanguageViewModel(IAdapter adapter) : base(adapter)
         {

@@ -6,8 +6,7 @@
             xmlns:viewModels="clr-namespace:BLE.Client.ViewModels;assembly=BLE.Client" 
             x:Class="BLE.Client.Pages.SelectLanguagePage"
             Title="Select Audio Language"
-            BackgroundColor="DarkGray" 
-            Disappearing="MvxContentPage_Disappearing"
+            BackgroundColor="DarkGray"
             >
     <Grid>
         <Grid.RowDefinitions>

@@ -110,9 +110,9 @@ namespace BLE.Client
 
         #region AUDIO LOOP THREAD VARIABLES
 
-        private readonly Thread audioLoopThread;
+        private Thread audioLoopThread;
 
-        private readonly CancellationTokenSource audioLoopTokenSource;
+        private CancellationTokenSource audioLoopTokenSource;
 
         #endregion
 
@@ -154,6 +154,22 @@ namespace BLE.Client
         public void StopAudioLoopThread()
         { 
             audioLoopTokenSource?.Cancel(); 
+        }
+
+        public void Restart()
+        {
+            StopAudioLoopThread();
+
+            CurrentAudioInstruction = AudioInstruction.p01_calm_911;
+            currentState = State.Entry;
+
+            audioLoopTokenSource = new CancellationTokenSource();
+            audioLoopThread = new Thread(AudioLoopThread_Entry)
+            {
+                Name = "Audio Loop Thread"
+            };
+
+            StartAudioLoopThread();
         }
 
         private void AudioLoopThread_Entry()
